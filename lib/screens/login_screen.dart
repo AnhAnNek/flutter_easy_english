@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
-import 'package:flutter_easy_english/screens/register_screen.dart';
+import 'package:flutter_easy_english/screens/home_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Navigate to the RegisterScreen on successful login
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => RegisterScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } catch (e) {
         logger.e('Login failed with error: $e');

@@ -7,7 +7,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Giới thiệu thành viên'),
+        title: Text(
+          'Giới thiệu thành viên',
+          style: GoogleFonts.roboto(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
         centerTitle: true,
       ),
       body: Padding(
@@ -55,38 +61,40 @@ class MemberCard extends StatelessWidget {
       ),
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 40,
+              radius: 35,
               backgroundImage: NetworkImage(avatarUrl),
             ),
             SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.roboto(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  role,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700],
+                  SizedBox(height: 4),
+                  Text(
+                    role,
+                    style: GoogleFonts.roboto(
+                      fontSize: 15,
+                      color: Colors.grey[700],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            Spacer(),
             FaIcon(
               icon,
-              size: 30,
+              size: 28,
               color: Colors.blueAccent,
             ),
           ],

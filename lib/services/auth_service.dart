@@ -7,6 +7,7 @@ import 'package:flutter_easy_english/models/update_password_request.dart';
 import 'package:flutter_easy_english/models/user_dto.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/register_request.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:flutter_easy_english/utils/http_request.dart';
 
 class AuthService extends IAuthService {
@@ -33,7 +34,9 @@ class AuthService extends IAuthService {
   @override
   Future<LoginResponse> login(LoginRequest loginRequest) async {
     final response = await HttpRequest.post('$SUFFIX_AUTH/login', loginRequest.toJson());
-    return LoginResponse.fromJson(response);
+    LoginResponse loginResponse = LoginResponse.fromJson(response);
+    await AuthUtils.saveLoginResponse(loginResponse);
+    return loginResponse;
   }
 
   @override
