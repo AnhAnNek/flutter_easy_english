@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   json_annotation: ^4.6.0
   intl: ^0.18.0
+  fluttertoast: ^8.0.9
 
 dev_dependencies:
   flutter_test:

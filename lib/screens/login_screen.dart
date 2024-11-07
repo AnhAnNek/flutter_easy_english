@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
+import 'package:flutter_easy_english/screens/register_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -35,8 +37,27 @@ class _LoginScreenState extends State<LoginScreen> {
         logger.i('Sending login request for ${loginRequest.usernameOrEmail}');
         LoginResponse response = await authService.login(loginRequest);
         logger.i('Login successful: ${response.toString()}');
+
+        // Show a success toast
+        Fluttertoast.showToast(
+          msg: "Login successful!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+
+        // Navigate to the RegisterScreen on successful login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => RegisterScreen()),
+        );
       } catch (e) {
         logger.e('Login failed with error: $e');
+
+        // Show an error toast
+        Fluttertoast.showToast(
+          msg: "Login failed. Please try again.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
       }
 
       setState(() {
@@ -44,6 +65,13 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } else {
       logger.w('Login form validation failed');
+
+      // Show a toast for validation failure
+      Fluttertoast.showToast(
+        msg: "Please fill in all required fields.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
     }
   }
 
