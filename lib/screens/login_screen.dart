@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
+import 'package:flutter_easy_english/screens/forgot_password_screen.dart';
 import 'package:flutter_easy_english/screens/home_screen.dart';
+import 'package:flutter_easy_english/screens/register_screen.dart'; // Thêm import RegisterScreen
 import 'package:logger/logger.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gravity: ToastGravity.BOTTOM,
         );
 
-        // Navigate to the RegisterScreen on successful login
+        // Navigate to the HomeScreen on successful login
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => HomeScreen()),
         );
@@ -118,9 +120,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/forgot-password');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+                    );
                   },
                   child: Text('Forgot your password?'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => RegisterScreen()),
+                    );
+                  },
+                  child: Text('Register'),
                 ),
               ],
             ),
