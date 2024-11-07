@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/register_request.dart';
-import 'package:flutter_easy_english/services/auth_service.dart'; // Assuming you have an AuthService
+import 'package:flutter_easy_english/services/auth_service.dart';
 import 'package:intl/intl.dart';
+import 'otp_screen.dart'; // Import the OTP screen
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -41,10 +42,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         await AuthService().register(registerRequest);
-        // Handle successful registration (e.g., navigate to login)
+        // Navigate to OTP screen after successful registration
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtpScreen(username: _usernameController.text),
+          ),
+        );
       } catch (e) {
-        // Handle error
-        print(e);
+        // Handle registration error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed: $e')),
+        );
       }
 
       setState(() {
@@ -174,6 +183,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : ElevatedButton(
                   onPressed: _register,
                   child: Text('Register'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Navigate back to the login screen
+                  },
+                  child: Text('Already have an account? Login'),
                 ),
               ],
             ),

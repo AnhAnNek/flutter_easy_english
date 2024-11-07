@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gravity: ToastGravity.BOTTOM,
         );
 
-        // Navigate to the RegisterScreen on successful login
+        // Navigate to the HomeScreen on successful login
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => HomeScreen()),
         );
@@ -133,6 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                   child: Text('Forgot your password?'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => RegisterScreen()),
+                    );
+                  },
+                  child: Text('Register'),
                 ),
               ],
             ),
