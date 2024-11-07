@@ -16,9 +16,22 @@ class AuthService extends IAuthService {
 
   @override
   Future<String> register(RegisterRequest registerRequest) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/register', registerRequest.toJson());
-    return response['message'];
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/register', registerRequest.toJson());
+    return response;
   }
+
+  @override
+  Future<ActiveAccountResponse> activateAccount(OtpRequest otpRequest) async {
+    final response = await HttpRequest.putReturnDynamic('$SUFFIX_AUTH/active-account', otpRequest.toJson());
+    return ActiveAccountResponse.fromJson(response);
+  }
+
+  @override
+  Future<UserDTO> resendOtpToActiveAccount(String username) async {
+    final response = await HttpRequest.post('$SUFFIX_AUTH/resend-otp-to-active-account/$username', {});
+    return UserDTO.fromJson(response);
+  }
+
 
   @override
   Future<String> generateOtpToLogin(LoginRequest loginRequest) async {
@@ -56,18 +69,6 @@ class AuthService extends IAuthService {
   Future<UserDTO> updateOwnPassword(UpdatePasswordRequest updatePasswordRequest) async {
     final response = await HttpRequest.put('$SUFFIX_AUTH/update-own-password', updatePasswordRequest.toJson());
     return UserDTO.fromJson(response);
-  }
-
-  @override
-  Future<UserDTO> resendOtpToActiveAccount(String username) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/resend-otp-to-active-account/$username', {});
-    return UserDTO.fromJson(response);
-  }
-
-  @override
-  Future<ActiveAccountResponse> activateAccount(OtpRequest otpRequest) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/active-account', otpRequest.toJson());
-    return ActiveAccountResponse.fromJson(response);
   }
 
   @override
