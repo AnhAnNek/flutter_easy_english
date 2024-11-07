@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_english/services/i_auth_service.dart';
-import 'package:provider/provider.dart';
-import '../models/register_request.dart';
+import 'package:flutter_easy_english/models/register_request.dart';
+import 'package:flutter_easy_english/services/auth_service.dart'; // Assuming you have an AuthService
+import 'package:intl/intl.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -9,57 +9,175 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+
+  String? _selectedGender;
+  bool _isLoading = false;
+  DateTime? _selectedDob;
+
+  final List<String> _genders = ['MALE', 'FEMALE', 'OTHER'];
 
   void _register() async {
-    final authService = Provider.of<IAuthService>(context, listen: false);
-    try {
-      final registerRequest = RegisterRequest(
-        username: _emailController.text,
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      RegisterRequest registerRequest = RegisterRequest(
+        username: _usernameController.text,
         password: _passwordController.text,
-        fullName: _nameController.text,
+        fullName: _fullNameController.text,
         email: _emailController.text,
-        phoneNumber: '', // Add a field or handle phone number if necessary
-        gender: 'MALE',  // Adjust according to actual gender selection
-        dob: DateTime.now(), // Handle date of birth as needed
+        phoneNumber: _phoneController.text,
+        gender: _selectedGender!,
+        dob: _selectedDob!,
       );
-      await authService.register(registerRequest);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Registration successful")));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Registration failed")));
+
+      try {
+        await AuthService().register(registerRequest);
+        // Handle successful registration (e.g., navigate to login)
+      } catch (e) {
+        // Handle error
+        print(e);
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDob = picked;
+        _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
+      appBar: AppBar(
+        title: Text('Register'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(labelText: 'Username'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a username';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _fullNameController,
+                  decoration: InputDecoration(labelText: 'Full Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(labelText: 'Email'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(labelText: 'Phone Number'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    return null;
+                  },
+                ),
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: InputDecoration(labelText: 'Gender'),
+                  items: _genders.map((gender) {
+                    return DropdownMenuItem(
+                      value: gender,
+                      child: Text(gender),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select your gender';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _dobController,
+                  decoration: InputDecoration(labelText: 'Date of Birth'),
+                  onTap: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    _pickDate();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your date of birth';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : ElevatedButton(
+                  onPressed: _register,
+                  child: Text('Register'),
+                ),
+              ],
             ),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _register,
-              child: Text('Register'),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -50,12 +50,12 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
   http: ^1.2.2 # Gửi request HTTP lên server
-  flutter_secure_storage: ^6.0.0 # Lưu trữ token JWT securely
+  flutter_secure_storage: ^8.0.0
   provider: ^6.0.5 # Quản lý trạng thái ứng dụng
   otp_text_field: ^1.0.0 # Thư viện cho OTP input
-  flutter_dotenv: ^5.0.2
   build_runner: ^2.3.3
   json_serializable: ^6.3.0
+  logger: ^1.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

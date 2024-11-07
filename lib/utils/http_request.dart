@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'auth_utils.dart'; // Import your auth utils for getting the token
+import 'auth_utils.dart';
+import 'environment.dart';
 
 class HttpRequest {
-  static final String _baseUrl = dotenv.env['API_BASE_URL'] ?? '';
-
   // Function to handle GET requests
   static Future<Map<String, dynamic>> get(String path, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$_baseUrl$path');
+    final url = Uri.parse('$Environment.apiUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -28,7 +26,7 @@ class HttpRequest {
 
   // Function to handle POST requests
   static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$_baseUrl$path');
+    final url = Uri.parse('$Environment.apiUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -48,7 +46,7 @@ class HttpRequest {
 
   // Function to handle PUT requests
   static Future<Map<String, dynamic>> put(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$_baseUrl$path');
+    final url = Uri.parse('$Environment.apiUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -68,7 +66,7 @@ class HttpRequest {
 
   // Function to handle DELETE requests
   static Future<Map<String, dynamic>> delete(String path, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$_baseUrl$path');
+    final url = Uri.parse('$Environment.apiUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
