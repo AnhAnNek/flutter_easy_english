@@ -5,12 +5,12 @@ part 'update_password_request.g.dart';
 @JsonSerializable()
 class UpdatePasswordRequest {
   final String username;
-  final String password;
+  final String newPassword;
   final String confirmPassword;
 
   UpdatePasswordRequest({
     required this.username,
-    required this.password,
+    required this.newPassword,
     required this.confirmPassword,
   });
 

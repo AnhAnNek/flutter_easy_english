@@ -19,7 +19,26 @@ class HttpRequest {
 
       final response = await http.get(url, headers: headersWithToken);
 
-      return _handleResponse(response);
+      return _handleDynamicResponse(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<dynamic> getReturnDynamic(String path, {Map<String, String>? headers}) async {
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
+
+    try {
+      final token = await AuthUtils.getToken();
+      final headersWithToken = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+        ...?headers,
+      };
+
+      final response = await http.get(url, headers: headersWithToken);
+      return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;
     }
@@ -40,7 +59,27 @@ class HttpRequest {
 
       final response = await http.post(url, headers: headersWithToken, body: jsonEncode(data));
 
-      return _handleResponse(response);
+      return _handleDynamicResponse(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Function to handle POST requests
+  static Future<dynamic> postReturnDynamic(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
+
+    try {
+      final token = await AuthUtils.getToken();
+      final headersWithToken = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+        ...?headers,
+      };
+
+      final response = await http.post(url, headers: headersWithToken, body: jsonEncode(data));
+      return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;
     }
@@ -60,8 +99,26 @@ class HttpRequest {
       };
 
       final response = await http.put(url, headers: headersWithToken, body: jsonEncode(data));
+      return _handleDynamicResponse(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-      return _handleResponse(response);
+  static Future<dynamic> putReturnDynamic(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
+
+    try {
+      final token = await AuthUtils.getToken();
+      final headersWithToken = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+        ...?headers,
+      };
+
+      final response = await http.put(url, headers: headersWithToken, body: jsonEncode(data));
+      return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;
     }
@@ -82,28 +139,43 @@ class HttpRequest {
 
       final response = await http.delete(url, headers: headersWithToken);
 
-      return _handleResponse(response);
+      return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  // Handle the response based on the status code
-  static Map<String, dynamic> _handleResponse(http.Response response) {
-    final statusCode = response.statusCode;
-    final responseBody = jsonDecode(response.body);
+  static Future<dynamic> deleteReturnDynamic(String path, {Map<String, String>? headers}) async {
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
 
-    if (statusCode >= 200 && statusCode < 300) {
-      return responseBody;
-    } else {
-      if (statusCode == 401) {
-        print('Unauthorized access - possibly due to an invalid token.');
-      } else if (statusCode == 403) {
-        print('Forbidden - you do not have permission to access this resource.');
-      } else if (statusCode == 500) {
-        print('Server error - something went wrong on the server.');
+    try {
+      final token = await AuthUtils.getToken();
+      final headersWithToken = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+        ...?headers,
+      };
+
+      final response = await http.delete(url, headers: headersWithToken);
+      return _handleDynamicResponse(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static dynamic _handleDynamicResponse(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        // Attempt to parse JSON response and return the parsed response
+        return jsonDecode(response.body);  // Return the parsed JSON object dynamically
+      } catch (e) {
+        // If JSON parsing fails, return the raw response body
+        return response.body;
       }
-      throw Exception(responseBody['message'] ?? 'An unknown error occurred');
+    } else {
+      // If the status code is not successful, throw an error
+      throw Exception('Request failed with status: ${response.statusCode}');
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter_easy_english/models/reset_pass_with_otp_req.dart';
 import 'package:flutter_easy_english/models/user_dto.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/models/active_account_response.dart';
@@ -17,4 +18,6 @@ abstract class IAuthService {
   Future<UserDTO> resendOtpToActiveAccount(String username);
   Future<ActiveAccountResponse> activateAccount(OtpRequest otpRequest);
   Future<String> generateOtpToUpdateProfile(String username);
+  Future<String> generateOtpToResetPassword(String email);
+  Future<String> resetPasswordWithOtp(ResetPassWithOtpReq req);
 }
