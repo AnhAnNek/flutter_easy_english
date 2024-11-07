@@ -12,7 +12,7 @@ abstract class IAuthService {
   Future<String> generateOtpToLogin(LoginRequest loginRequest);
   Future<LoginResponse> loginWithOtp(OtpRequest otpRequest);
   Future<LoginResponse> login(LoginRequest loginRequest);
-  Future<String> logout(String token);
+  Future<String> logout();
   Future<UserDTO> getUserByToken(String token);
   Future<UserDTO> updateOwnPassword(UpdatePasswordRequest updatePasswordRequest);
   Future<UserDTO> resendOtpToActiveAccount(String username);

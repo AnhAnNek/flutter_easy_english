@@ -1,20 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easy_english/screens/login_screen.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HomeScreen extends StatelessWidget {
+
+  Future<void> handleLogout(BuildContext context) async {
+    try {
+      // Attempt to remove login response
+      await AuthUtils.removeLoginResponse();
+
+      // Navigate to LoginScreen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } catch (e) {
+      // Show toast message when error occurs
+      Fluttertoast.showToast(
+        msg: "An error occurred while logging out!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Giới thiệu thành viên',
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
+        title: Text('Giới thiệu thành viên'),
         centerTitle: true,
+        actions: [
+          // Logout button in the AppBar
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () => handleLogout(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -33,6 +61,8 @@ class HomeScreen extends StatelessWidget {
               avatarUrl: 'https://res.cloudinary.com/dq7y35u7s/image/upload/v1730987092/hucniq50gdwouvlbpnv0.jpg',
               icon: FontAwesomeIcons.userTie,
             ),
+            SizedBox(height: 16),
+            // Logout button below the list of members
           ],
         ),
       ),
@@ -61,40 +91,38 @@ class MemberCard extends StatelessWidget {
       ),
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 35,
+              radius: 40,
               backgroundImage: NetworkImage(avatarUrl),
             ),
             SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    role,
-                    style: GoogleFonts.roboto(
-                      fontSize: 15,
-                      color: Colors.grey[700],
-                    ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  role,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+            Spacer(),
             FaIcon(
               icon,
-              size: 28,
+              size: 30,
               color: Colors.blueAccent,
             ),
           ],

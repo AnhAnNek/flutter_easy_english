@@ -41,9 +41,9 @@ class AuthService extends IAuthService {
   }
 
   @override
-  Future<String> logout(String token) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/logout', {'token': token});
-    return response['message'];
+  Future<String> logout() async {
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/logout', {});
+    return response;
   }
 
   @override
