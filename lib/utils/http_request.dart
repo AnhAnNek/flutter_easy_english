@@ -6,7 +6,8 @@ import 'environment.dart';
 class HttpRequest {
   // Function to handle GET requests
   static Future<Map<String, dynamic>> get(String path, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$Environment.apiUrl$path');
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -26,7 +27,8 @@ class HttpRequest {
 
   // Function to handle POST requests
   static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$Environment.apiUrl$path');
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -46,7 +48,8 @@ class HttpRequest {
 
   // Function to handle PUT requests
   static Future<Map<String, dynamic>> put(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$Environment.apiUrl$path');
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
 
     try {
       final token = await AuthUtils.getToken();
@@ -66,7 +69,8 @@ class HttpRequest {
 
   // Function to handle DELETE requests
   static Future<Map<String, dynamic>> delete(String path, {Map<String, String>? headers}) async {
-    final url = Uri.parse('$Environment.apiUrl$path');
+    final String baseUrl = Environment.apiUrl;
+    final url = Uri.parse('$baseUrl$path');
 
     try {
       final token = await AuthUtils.getToken();

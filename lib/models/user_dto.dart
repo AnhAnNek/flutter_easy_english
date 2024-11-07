@@ -5,7 +5,7 @@ part 'user_dto.g.dart';
 
 enum EGender { MALE, FEMALE, OTHER }
 
-enum ERole { USER, ADMIN, MODERATOR }
+enum ERole { STUDENT, TEACHER, ADMIN }
 
 @JsonSerializable(explicitToJson: true)
 class UserDTO {

@@ -39,7 +39,7 @@ const _$EGenderEnumMap = {
 };
 
 const _$ERoleEnumMap = {
-  ERole.USER: 'USER',
+  ERole.STUDENT: 'STUDENT',
+  ERole.TEACHER: 'TEACHER',
   ERole.ADMIN: 'ADMIN',
-  ERole.MODERATOR: 'MODERATOR',
 };

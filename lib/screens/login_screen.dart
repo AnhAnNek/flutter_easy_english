@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
-import 'package:flutter_easy_english/services/auth_service.dart'; // Assuming you have an AuthService
+import 'package:flutter_easy_english/models/login_response.dart';
+import 'package:logger/logger.dart';
+import 'package:flutter_easy_english/services/i_auth_service.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  final logger = Logger();
 
   void _login() async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -19,21 +23,27 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
+      logger.d('Login attempt: ${_usernameController.text}');
       LoginRequest loginRequest = LoginRequest(
         usernameOrEmail: _usernameController.text,
         password: _passwordController.text,
       );
 
       try {
-        var response = await AuthService().login(loginRequest);
-        // Handle login response here
+        IAuthService authService = Provider.of<IAuthService>(context, listen: false);
+
+        logger.i('Sending login request for ${loginRequest.usernameOrEmail}');
+        LoginResponse response = await authService.login(loginRequest);
+        logger.i('Login successful: ${response.toString()}');
       } catch (e) {
-        // Handle error
+        logger.e('Login failed with error: $e');
       }
 
       setState(() {
         _isLoading = false;
       });
+    } else {
+      logger.w('Login form validation failed');
     }
   }
 
