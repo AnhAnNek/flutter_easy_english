@@ -4,6 +4,7 @@ import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/screens/forgot_password_screen.dart';
 import 'package:flutter_easy_english/screens/home_screen.dart';
 import 'package:flutter_easy_english/screens/register_screen.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,22 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   final logger = Logger();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoggedInStatus();
+  }
+
+  void _checkLoggedInStatus() async {
+    bool isLoggedIn = await AuthUtils.isLoggedIn();
+    if (isLoggedIn) {
+      // If already logged in, navigate to HomeScreen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    }
+  }
 
   void _login() async {
     if (_formKey.currentState?.validate() ?? false) {
