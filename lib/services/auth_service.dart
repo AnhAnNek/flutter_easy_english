@@ -22,7 +22,7 @@ class AuthService extends IAuthService {
 
   @override
   Future<ActiveAccountResponse> activateAccount(OtpRequest otpRequest) async {
-    final response = await HttpRequest.putReturnDynamic('$SUFFIX_AUTH/active-account', otpRequest.toJson());
+    final response = await HttpRequest.put('$SUFFIX_AUTH/active-account', otpRequest.toJson());
     return ActiveAccountResponse.fromJson(response);
   }
 

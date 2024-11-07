@@ -151,14 +151,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: Text('Forgot your password?'),
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => RegisterScreen()),
-                    );
-                  },
-                  child: Text('Register'),
-                ),
               ],
             ),
           ),

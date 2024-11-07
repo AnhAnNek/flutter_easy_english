@@ -6,11 +6,11 @@ part 'active_account_response.g.dart';
 @JsonSerializable()
 class ActiveAccountResponse {
   final String message;
-  final UserDTO userDTO;
+  final UserDTO user;
 
   ActiveAccountResponse({
     required this.message,
-    required this.userDTO,
+    required this.user,
   });
 
   // Factory constructor to create an instance from a JSON map

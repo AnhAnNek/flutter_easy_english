@@ -10,12 +10,12 @@ ActiveAccountResponse _$ActiveAccountResponseFromJson(
         Map<String, dynamic> json) =>
     ActiveAccountResponse(
       message: json['message'] as String,
-      userDTO: UserDTO.fromJson(json['userDTO'] as Map<String, dynamic>),
+      user: UserDTO.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ActiveAccountResponseToJson(
         ActiveAccountResponse instance) =>
     <String, dynamic>{
       'message': instance.message,
-      'userDTO': instance.userDTO,
+      'user': instance.user,
     };
