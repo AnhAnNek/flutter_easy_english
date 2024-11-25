@@ -36,7 +36,10 @@ class CourseDetailScreen extends HookWidget {
   final List<String> categories = ["Technology", "Art", "Science", "Math"];
   final List<String> statuses = ["Active", "Inactive", "Draft"];
 
-  CourseDetailScreen({Key? key}) : super(key: key);
+  CourseDetailScreen({
+    Key? key,
+    dynamic courseId
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
