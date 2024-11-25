@@ -13,7 +13,7 @@ class LevelService extends ILevelService {
   }
 
   @override
-  Future<Void> deleteLevel(levelId) async {
+  Future<dynamic> deleteLevel(levelId) async {
     return await HttpRequest.deleteReturnDynamic('$SUFFIX_LEVEL/delete/$levelId');
   }
 

@@ -5,6 +5,6 @@ abstract class ILevelService {
   Future<dynamic> getLevelById(dynamic levelId);
   Future<dynamic> createLevel(Map<String, dynamic> level);
   Future<dynamic> updateLevel(levelId, Map<String, dynamic> level);
-  Future<Void> deleteLevel(dynamic levelId);
+  Future<dynamic> deleteLevel(dynamic levelId);
   Future<dynamic> fetchAllLevelByTopic(dynamic level);
 }

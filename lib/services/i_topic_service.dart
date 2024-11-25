@@ -5,5 +5,5 @@ abstract class ITopicService {
   Future<dynamic> getTopicById(topicId);
   Future<dynamic> createTopic(Map<String, dynamic> topic);
   Future<dynamic> updateTopic(topicId, Map<String, dynamic> topic);
-  Future<Void> deleteTopic(topicId);
+  Future<dynamic> deleteTopic(topicId);
 }

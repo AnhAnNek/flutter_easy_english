@@ -13,7 +13,7 @@ class CategoryService extends ICategoryService {
   }
 
   @override
-  Future<Void> deleteCategory(categoryId) async {
+  Future<dynamic> deleteCategory(categoryId) async {
     return await HttpRequest.deleteReturnDynamic('$SUFFIX_CATE/delete/$categoryId');
   }
 

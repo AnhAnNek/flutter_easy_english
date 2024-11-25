@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easy_english/services/i_topic_service.dart';
+import 'package:provider/provider.dart';
 
 class TopicScreen extends StatefulWidget {
   @override
@@ -6,25 +8,179 @@ class TopicScreen extends StatefulWidget {
 }
 
 class _TopicScreenState extends State<TopicScreen> {
-  // Dữ liệu giả cho danh sách topic
-  List<Map<String, dynamic>> topics = [
-    {'id': 1, 'name': 'Mathematics'},
-    {'id': 2, 'name': 'Physics'},
-    {'id': 3, 'name': 'Chemistry'},
-    {'id': 4, 'name': 'Biology'},
-  ];
-
-  int _idCounter = 5; // Biến đếm để tạo ID duy nhất (khởi tạo lớn hơn ID cuối cùng)
-
+  List<Map<String, dynamic>> topics = [];
   String searchQuery = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTopics();
+  }
+
+  Future<void> _fetchTopics() async {
+    setState(() => isLoading = true);
+
+    try {
+      final ITopicService topicService =
+      Provider.of<ITopicService>(context, listen: false);
+
+      final fetchedTopics = await topicService.fetchAllTopic();
+      setState(() {
+        topics = List<Map<String, dynamic>>.from(fetchedTopics);
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch topics: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _deleteTopic(int id, String name) async {
+    try {
+      final ITopicService topicService =
+      Provider.of<ITopicService>(context, listen: false);
+
+      await topicService.deleteTopic(id);
+      setState(() {
+        topics.removeWhere((topic) => topic['id'] == id);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Topic "$name" deleted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete topic: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addOrUpdateTopic({
+    Map<String, dynamic>? topic,
+    required String name,
+  }) async {
+    try {
+      final ITopicService topicService =
+      Provider.of<ITopicService>(context, listen: false);
+
+      if (topic == null) {
+        // Add new topic
+        final newTopic = await topicService.createTopic({'name': name});
+        setState(() {
+          topics.add(newTopic);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Topic "$name" added successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Update existing topic
+        await topicService.updateTopic(topic['id'], {'name': name});
+        setState(() {
+          topic['name'] = name;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Topic "$name" updated successfully!'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save topic: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showDeleteConfirmationDialog(int id, String name) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm Delete'),
+        content: Text('Are you sure you want to delete "$name"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteTopic(id, name);
+            },
+            child: Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddEditDialog({Map<String, dynamic>? topic}) {
+    final TextEditingController nameController =
+    TextEditingController(text: topic != null ? topic['name'] : '');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(topic == null ? 'Add Topic' : 'Edit Topic'),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(
+              labelText: 'Topic Name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  Navigator.pop(context);
+                  _addOrUpdateTopic(topic: topic, name: name);
+                }
+              },
+              child: Text(topic == null ? 'Add' : 'Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Lọc danh sách topic dựa trên từ khóa tìm kiếm
-    List<Map<String, dynamic>> filteredTopics = topics.where((topic) {
+    // Filter topics based on the search query
+    final filteredTopics = topics.where((topic) {
       return topic['name']
           .toLowerCase()
-          .contains(searchQuery.toLowerCase()); // Lọc theo tên
+          .contains(searchQuery.toLowerCase());
     }).toList();
 
     return Scaffold(
@@ -33,14 +189,14 @@ class _TopicScreenState extends State<TopicScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _showAddEditDialog(), // Thêm mới topic
+            icon: Icon(Icons.refresh),
+            onPressed: _fetchTopics, // Refresh the topic list
           ),
         ],
       ),
       body: Column(
         children: [
-          // Thanh tìm kiếm
+          // Search bar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -53,19 +209,21 @@ class _TopicScreenState extends State<TopicScreen> {
               ),
               onChanged: (value) {
                 setState(() {
-                  searchQuery = value; // Cập nhật từ khóa tìm kiếm
+                  searchQuery = value;
                 });
               },
             ),
           ),
-          // Danh sách Topic
+          // Topic list
           Expanded(
-            child: filteredTopics.isEmpty
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filteredTopics.isEmpty
                 ? const Center(
               child: Text(
                 'No topics found!',
-                style:
-                TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
             )
                 : ListView.builder(
@@ -109,106 +267,6 @@ class _TopicScreenState extends State<TopicScreen> {
         onPressed: () => _showAddEditDialog(),
         child: Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(int id, String name) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirm Delete'),
-        content: Text('Are you sure you want to delete "$name"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteTopic(id, name);
-            },
-            child: Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteTopic(int id, String name) {
-    setState(() {
-      topics.removeWhere((topic) => topic['id'] == id);
-    });
-
-    // Hiển thị Snackbar thông báo thành công
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Topic "$name" deleted successfully!'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _showAddEditDialog({Map<String, dynamic>? topic}) {
-    final TextEditingController nameController =
-    TextEditingController(text: topic != null ? topic['name'] : '');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(topic == null ? 'Add Topic' : 'Edit Topic'),
-          content: TextField(
-            controller: nameController,
-            decoration: InputDecoration(
-              labelText: 'Topic Name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                if (name.isNotEmpty) {
-                  setState(() {
-                    if (topic == null) {
-                      // Thêm mới topic với ID duy nhất từ _idCounter
-                      topics.add({
-                        'id': _idCounter++,
-                        'name': name,
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Topic "$name" added successfully!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      // Cập nhật topic
-                      topic['name'] = name;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Topic "$name" updated successfully!'),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    }
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              child: Text(topic == null ? 'Add' : 'Update'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
