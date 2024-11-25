@@ -13,5 +13,5 @@ abstract class ICourseService {
   Future<Map<String, dynamic>?> fetchMainCourse(Map<String, dynamic> courseRequest);
   Future<bool> addCourseToFavourite(Map<String, dynamic> courseRequest);
   Future<dynamic> getAllCourseForAdmin(Map<String, dynamic> filterReq);
-  Future<dynamic> updateCourseStatus(Long courseId, String status);
+  Future<dynamic> updateCourseStatus(int courseId, String? status);
 }

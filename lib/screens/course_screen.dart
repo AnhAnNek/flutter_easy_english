@@ -1,7 +1,6 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/services/i_course_service.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 
@@ -15,18 +14,41 @@ class _CourseScreenState extends State<CourseScreen> {
   List<Map<String, dynamic>> courses = [];
   List<Map<String, dynamic>> filteredCourses = [];
   Map<int, String> statusUpdates = {};
-  String searchQuery = '';
+  String? searchQuery = '';
   String? selectedStatus;
-  String? ownerUsername;
   int currentPage = 1;
-  int itemsPerPage = 8;
+  int itemsPerPage = 1000;
   int totalPages = 1;
   bool isLoading = true;
+
+  final Map<String?, String> statusDisplayMapping = {
+    null: 'All',
+    'PUBLISHED': 'Published',
+    'REJECTED': 'Rejected',
+    'PENDING_APPROVAL': 'Pending Approval',
+    'DRAFT': 'Draft',
+    'DELETED': 'Deleted',
+  };
 
   @override
   void initState() {
     super.initState();
     fetchCourses();
+  }
+
+  /// Converts a backend status value (e.g., "PUBLISHED") to a display string (e.g., "Published").
+  String getDisplayStatus(String backendStatus) {
+    return statusDisplayMapping[backendStatus] ?? backendStatus;
+  }
+
+  /// Converts a display string (e.g., "Published") to a backend status value (e.g., "PUBLISHED").
+  String? getBackendStatus(String displayStatus) {
+    return statusDisplayMapping.entries
+        .firstWhere(
+          (entry) => entry.value == displayStatus,
+      orElse: () => MapEntry(displayStatus, displayStatus),
+    )
+        .key;
   }
 
   Future<void> fetchCourses() async {
@@ -39,12 +61,14 @@ class _CourseScreenState extends State<CourseScreen> {
       final courseRequest = {
         'pageNumber': currentPage - 1,
         'size': itemsPerPage,
-        'ownerUsername': ownerUsername,
-        'status': selectedStatus,
+        'title': searchQuery,
+        'status': selectedStatus != null ? getBackendStatus(selectedStatus!) : null,
       };
 
-      final dynamic fetchedCourses = await courseService.getAllCourseForAdmin(courseRequest);
+      final dynamic fetchedCourses =
+      await courseService.getAllCourseForAdmin(courseRequest);
       logger.i('fetchedCourses: $fetchedCourses');
+      logger.i('content: ${fetchedCourses['content']}');
 
       setState(() {
         courses = fetchedCourses['content']?.cast<Map<String, dynamic>>() ?? [];
@@ -56,14 +80,15 @@ class _CourseScreenState extends State<CourseScreen> {
             : int.tryParse(fetchedCourses['totalPages'].toString()) ?? 1;
       });
     } catch (error) {
-      setState(() => isLoading = false);
       logger.e('Fetching courses failed with error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load courses: $error'),
+          content: Text('${error}'),
           duration: const Duration(seconds: 3),
         ),
       );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -80,7 +105,7 @@ class _CourseScreenState extends State<CourseScreen> {
     });
   }
 
-  Future<void> updateCourseStatus(Long courseId) async {
+  Future<void> updateCourseStatus(int courseId) async {
     final ICourseService courseService =
     Provider.of<ICourseService>(context, listen: false);
 
@@ -95,7 +120,10 @@ class _CourseScreenState extends State<CourseScreen> {
         return;
       }
 
-      await courseService.updateCourseStatus(courseId, statusUpdates[courseId]!);
+      await courseService.updateCourseStatus(
+        courseId,
+        getBackendStatus(statusUpdates[courseId]!),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Course status updated successfully.'),
@@ -105,11 +133,30 @@ class _CourseScreenState extends State<CourseScreen> {
       fetchCourses();
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
+
         SnackBar(
           content: Text('Failed to update status: $error'),
           duration: const Duration(seconds: 3),
         ),
       );
+    }
+  }
+
+  String _getPriceText(Map<String, dynamic> price) {
+    final NumberFormat currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+
+    if (price['isActive'] == true && price['salePrice'] != null) {
+      if (price['salePrice'] == 0) {
+        return 'FREE';
+      }
+      return '${currencyFormat.format(price['salePrice'])} (Sale)';
+    } else if (price['price'] != null) {
+      if (price['price'] == 0) {
+        return 'FREE';
+      }
+      return currencyFormat.format(price['price']);
+    } else {
+      return 'Giá không có sẵn';
     }
   }
 
@@ -131,11 +178,11 @@ class _CourseScreenState extends State<CourseScreen> {
                 Expanded(
                   child: TextField(
                     decoration: const InputDecoration(
-                      labelText: 'Search by teacher',
+                      labelText: 'Search by title',
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
-                      ownerUsername = value.isEmpty ? null : value;
+                      searchQuery = value.isEmpty ? null : value;
                     },
                   ),
                 ),
@@ -153,13 +200,7 @@ class _CourseScreenState extends State<CourseScreen> {
                         selectedStatus = value;
                       });
                     },
-                    items: [
-                      'Published',
-                      'Rejected',
-                      'Pending Approval',
-                      'Draft',
-                      'Deleted'
-                    ].map((status) {
+                    items: statusDisplayMapping.values.map((status) {
                       return DropdownMenuItem(
                         value: status,
                         child: Text(status),
@@ -210,28 +251,36 @@ class _CourseScreenState extends State<CourseScreen> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Teacher: ${course['ownerUsername']}'),
-                          Text('Price: \$${course['price']}'),
+                          Text(
+                            _getPriceText(course['price']),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           DropdownButton<String>(
-                            value: statusUpdates[course['id']] ??
-                                course['status'],
+                            value: getDisplayStatus(
+                              statusUpdates[course['id']] ??
+                                  course['status'],
+                            ),
                             onChanged: (newStatus) {
                               if (newStatus != null) {
                                 handleStatusChange(
                                     course['id'], newStatus);
                               }
                             },
-                            items: [
-                              'Published',
-                              'Rejected',
-                              'Pending Approval',
-                              'Draft',
-                              'Deleted'
-                            ].map((status) {
+                            items: statusDisplayMapping.values
+                                .map((status) {
                               return DropdownMenuItem(
                                 value: status,
                                 child: Text(status),
@@ -241,7 +290,8 @@ class _CourseScreenState extends State<CourseScreen> {
                         ],
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                        icon: const Icon(Icons.check,
+                            color: Colors.green),
                         onPressed: () {
                           updateCourseStatus(course['id']);
                         },
@@ -251,32 +301,6 @@ class _CourseScreenState extends State<CourseScreen> {
                 },
               ),
             ),
-            // Pagination
-            if (!isLoading && totalPages > 1)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: currentPage > 1
-                        ? () {
-                      setState(() => currentPage--);
-                      fetchCourses();
-                    }
-                        : null,
-                  ),
-                  Text('Page $currentPage of $totalPages'),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: currentPage < totalPages
-                        ? () {
-                      setState(() => currentPage++);
-                      fetchCourses();
-                    }
-                        : null,
-                  ),
-                ],
-              ),
           ],
         ),
       ),

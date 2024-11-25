@@ -126,7 +126,7 @@ class CourseService implements ICourseService {
   }
 
   @override
-  Future<bool> updateCourseStatus(Long courseId, String status) async {
+  Future<bool> updateCourseStatus(int courseId, String? status) async {
     final response = await HttpRequest.putReturnDynamic(
       '$SUFFIX_COURSE/update-status/$courseId/$status',
       null

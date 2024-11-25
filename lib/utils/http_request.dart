@@ -83,16 +83,11 @@ class HttpRequest {
 
   static dynamic _handleDynamicResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      try {
-        // Attempt to parse JSON response and return the parsed response
-        return jsonDecode(response.body);  // Return the parsed JSON object dynamically
-      } catch (e) {
-        // If JSON parsing fails, return the raw response body
-        return response.body;
-      }
+      // Successful response
+      return jsonDecode(response.body);
     } else {
-      // If the status code is not successful, throw an error
-      throw Exception('Request failed with status: ${response.statusCode}');
+      final Map<String, dynamic> errorJson = jsonDecode(response.body);
+      throw Exception('Error: ${errorJson['message']}');
     }
   }
 }
