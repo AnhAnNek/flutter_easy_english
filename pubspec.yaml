@@ -27,14 +27,21 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
-
-
+  google_fonts: ^6.2.1
+  font_awesome_flutter: ^10.5.0
+  flutter_hooks: ^0.18.0
+  flutter_easyloading: ^3.0.5
+  image_picker: ^0.8.4+8
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  json_annotation: ^4.6.0
+  intl: ^0.18.0
+  fluttertoast: ^8.0.9
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +53,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+
+  http: ^1.2.2 # Gửi request HTTP lên server
+  flutter_secure_storage: ^8.0.0
+  provider: ^6.0.5 # Quản lý trạng thái ứng dụng
+  otp_text_field: ^1.0.0 # Thư viện cho OTP input
+  build_runner: ^2.3.3
+  json_serializable: ^6.3.0
+  logger: ^1.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
