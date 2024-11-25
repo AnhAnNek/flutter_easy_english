@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/screens/forgot_password_screen.dart';
-import 'package:flutter_easy_english/screens/home_screen.dart';
+import 'package:flutter_easy_english/screens/index_screen.dart';
 import 'package:flutter_easy_english/screens/register_screen.dart';
 import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:logger/logger.dart';
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (isLoggedIn) {
       // If already logged in, navigate to HomeScreen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => IndexScreen()),
       );
     }
   }
@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Navigate to the HomeScreen on successful login
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => IndexScreen()),
         );
       } catch (e) {
         logger.e('Login failed with error: $e');

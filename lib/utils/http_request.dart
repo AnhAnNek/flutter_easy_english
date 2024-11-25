@@ -4,27 +4,6 @@ import 'auth_utils.dart';
 import 'environment.dart';
 
 class HttpRequest {
-  // Function to handle GET requests
-  static Future<Map<String, dynamic>> get(String path, {Map<String, String>? headers}) async {
-    final String baseUrl = Environment.apiUrl;
-    final url = Uri.parse('$baseUrl$path');
-
-    try {
-      final token = await AuthUtils.getToken();
-      final headersWithToken = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-        ...?headers,
-      };
-
-      final response = await http.get(url, headers: headersWithToken);
-
-      return _handleDynamicResponse(response);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   static Future<dynamic> getReturnDynamic(String path, {Map<String, String>? headers}) async {
     final String baseUrl = Environment.apiUrl;
     final url = Uri.parse('$baseUrl$path');
@@ -38,27 +17,6 @@ class HttpRequest {
       };
 
       final response = await http.get(url, headers: headersWithToken);
-      return _handleDynamicResponse(response);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Function to handle POST requests
-  static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final String baseUrl = Environment.apiUrl;
-    final url = Uri.parse('$baseUrl$path');
-
-    try {
-      final token = await AuthUtils.getToken();
-      final headersWithToken = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-        ...?headers,
-      };
-
-      final response = await http.post(url, headers: headersWithToken, body: jsonEncode(data));
-
       return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;
@@ -85,8 +43,7 @@ class HttpRequest {
     }
   }
 
-  // Function to handle PUT requests
-  static Future<Map<String, dynamic>> put(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
+  static Future<dynamic> putReturnDynamic(String path, Map<String, dynamic>? data, {Map<String, String>? headers}) async {
     final String baseUrl = Environment.apiUrl;
     final url = Uri.parse('$baseUrl$path');
 
@@ -99,46 +56,6 @@ class HttpRequest {
       };
 
       final response = await http.put(url, headers: headersWithToken, body: jsonEncode(data));
-      return _handleDynamicResponse(response);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  static Future<dynamic> putReturnDynamic(String path, Map<String, dynamic> data, {Map<String, String>? headers}) async {
-    final String baseUrl = Environment.apiUrl;
-    final url = Uri.parse('$baseUrl$path');
-
-    try {
-      final token = await AuthUtils.getToken();
-      final headersWithToken = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-        ...?headers,
-      };
-
-      final response = await http.put(url, headers: headersWithToken, body: jsonEncode(data));
-      return _handleDynamicResponse(response);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Function to handle DELETE requests
-  static Future<Map<String, dynamic>> delete(String path, {Map<String, String>? headers}) async {
-    final String baseUrl = Environment.apiUrl;
-    final url = Uri.parse('$baseUrl$path');
-
-    try {
-      final token = await AuthUtils.getToken();
-      final headersWithToken = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-        ...?headers,
-      };
-
-      final response = await http.delete(url, headers: headersWithToken);
-
       return _handleDynamicResponse(response);
     } catch (e) {
       rethrow;

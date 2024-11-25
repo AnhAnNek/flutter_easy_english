@@ -1,6 +1,5 @@
 import 'package:flutter_easy_english/models/reset_pass_with_otp_req.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
-import 'dart:convert';
 import 'package:flutter_easy_english/models/active_account_response.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/models/otp_request.dart';
@@ -22,32 +21,32 @@ class AuthService extends IAuthService {
 
   @override
   Future<ActiveAccountResponse> activateAccount(OtpRequest otpRequest) async {
-    final response = await HttpRequest.put('$SUFFIX_AUTH/active-account', otpRequest.toJson());
+    final response = await HttpRequest.putReturnDynamic('$SUFFIX_AUTH/active-account', otpRequest.toJson());
     return ActiveAccountResponse.fromJson(response);
   }
 
   @override
   Future<UserDTO> resendOtpToActiveAccount(String username) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/resend-otp-to-active-account/$username', {});
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/resend-otp-to-active-account/$username', {});
     return UserDTO.fromJson(response);
   }
 
 
   @override
   Future<String> generateOtpToLogin(LoginRequest loginRequest) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/generate-otp-to-login', loginRequest.toJson());
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/generate-otp-to-login', loginRequest.toJson());
     return response['otp'];
   }
 
   @override
   Future<LoginResponse> loginWithOtp(OtpRequest otpRequest) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/login-with-otp', otpRequest.toJson());
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/login-with-otp', otpRequest.toJson());
     return LoginResponse.fromJson(response);
   }
 
   @override
   Future<LoginResponse> login(LoginRequest loginRequest) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/login', loginRequest.toJson());
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/login', loginRequest.toJson());
     LoginResponse loginResponse = LoginResponse.fromJson(response);
     await AuthUtils.saveLoginResponse(loginResponse);
     return loginResponse;
@@ -61,19 +60,19 @@ class AuthService extends IAuthService {
 
   @override
   Future<UserDTO> getUserByToken(String token) async {
-    final response = await HttpRequest.get('$SUFFIX_AUTH/get-user-by-token', headers: {'Authorization': 'Bearer $token'});
+    final response = await HttpRequest.getReturnDynamic('$SUFFIX_AUTH/get-user-by-token', headers: {'Authorization': 'Bearer $token'});
     return UserDTO.fromJson(response);
   }
 
   @override
   Future<UserDTO> updateOwnPassword(UpdatePasswordRequest updatePasswordRequest) async {
-    final response = await HttpRequest.put('$SUFFIX_AUTH/update-own-password', updatePasswordRequest.toJson());
+    final response = await HttpRequest.putReturnDynamic('$SUFFIX_AUTH/update-own-password', updatePasswordRequest.toJson());
     return UserDTO.fromJson(response);
   }
 
   @override
   Future<String> generateOtpToUpdateProfile(String username) async {
-    final response = await HttpRequest.post('$SUFFIX_AUTH/generate-otp-to-update-profile/$username}', {});
+    final response = await HttpRequest.postReturnDynamic('$SUFFIX_AUTH/generate-otp-to-update-profile/$username}', {});
     return response['message'];
   }
 
