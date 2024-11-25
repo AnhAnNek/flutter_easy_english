@@ -18,7 +18,7 @@ class _CourseScreenState extends State<CourseScreen> {
   String? searchQuery = '';
   String? selectedStatus;
   int currentPage = 1;
-  int itemsPerPage = 1000;
+  int itemsPerPage = 100;
   int totalPages = 1;
   bool isLoading = true;
 
@@ -136,7 +136,7 @@ class _CourseScreenState extends State<CourseScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
 
         SnackBar(
-          content: Text('Failed to update status: $error'),
+          content: Text('$error'),
           duration: const Duration(seconds: 3),
         ),
       );

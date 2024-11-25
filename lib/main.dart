@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/screens/index_screen.dart';
+import 'package:flutter_easy_english/services/category_service.dart';
 import 'package:flutter_easy_english/services/course_service.dart';
+import 'package:flutter_easy_english/services/i_category_service.dart';
 import 'package:flutter_easy_english/services/i_course_service.dart';
+import 'package:flutter_easy_english/services/i_level_service.dart';
+import 'package:flutter_easy_english/services/i_topic_service.dart';
+import 'package:flutter_easy_english/services/level_service.dart';
+import 'package:flutter_easy_english/services/topic_service.dart';
 import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
@@ -19,6 +25,9 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<IAuthService>(create: (_) => AuthService()),
         Provider<ICourseService>(create: (_) => CourseService()),
+        Provider<ICategoryService>(create: (_) => CategoryService()),
+        Provider<ILevelService>(create: (_) => LevelService()),
+        Provider<ITopicService>(create: (_) => TopicService()),
       ],
       child: MaterialApp(
         title: 'Android Programming | Easy English',

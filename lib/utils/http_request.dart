@@ -82,7 +82,7 @@ class HttpRequest {
   }
 
   static dynamic _handleDynamicResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode >= 200 && response.statusCode < 300 && response.statusCode == 204) {
       // Successful response
       return jsonDecode(response.body);
     } else {

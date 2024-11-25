@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easy_english/services/i_category_service.dart';
+import 'package:provider/provider.dart';
 
 class CategoryScreen extends StatefulWidget {
   @override
@@ -6,23 +8,179 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  // Dữ liệu giả cho danh sách category
-  List<Map<String, dynamic>> categories = [
-    {'id': 1, 'name': 'Science'},
-    {'id': 2, 'name': 'Technology'},
-    {'id': 3, 'name': 'Engineering'},
-    {'id': 4, 'name': 'Mathematics'},
-  ];
-
+  List<Map<String, dynamic>> categories = [];
   String searchQuery = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    setState(() => isLoading = true);
+
+    try {
+      final ICategoryService categoryService =
+      Provider.of<ICategoryService>(context, listen: false);
+
+      final fetchedCategories = await categoryService.fetchAllCategories();
+      setState(() {
+        categories = List<Map<String, dynamic>>.from(fetchedCategories);
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch categories: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _deleteCategory(int id, String name) async {
+    try {
+      final ICategoryService categoryService =
+      Provider.of<ICategoryService>(context, listen: false);
+
+      await categoryService.deleteCategory(id);
+      setState(() {
+        categories.removeWhere((category) => category['id'] == id);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Category "$name" deleted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete category: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addOrUpdateCategory({
+    Map<String, dynamic>? category,
+    required String name,
+  }) async {
+    try {
+      final ICategoryService categoryService =
+      Provider.of<ICategoryService>(context, listen: false);
+
+      if (category == null) {
+        // Add new category
+        final newCategory = await categoryService.createCategory({'name': name});
+        setState(() {
+          categories.add(newCategory);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Category "$name" added successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Update existing category
+        await categoryService.updateCategory(category['id'], {'name': name});
+        setState(() {
+          category['name'] = name;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Category "$name" updated successfully!'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save category: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showDeleteConfirmationDialog(int id, String name) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm Delete'),
+        content: Text('Are you sure you want to delete "$name"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteCategory(id, name);
+            },
+            child: Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddEditDialog({Map<String, dynamic>? category}) {
+    final TextEditingController nameController =
+    TextEditingController(text: category != null ? category['name'] : '');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(category == null ? 'Add Category' : 'Edit Category'),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(
+              labelText: 'Category Name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  Navigator.pop(context);
+                  _addOrUpdateCategory(category: category, name: name);
+                }
+              },
+              child: Text(category == null ? 'Add' : 'Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Lọc danh sách category dựa trên từ khóa tìm kiếm
-    List<Map<String, dynamic>> filteredCategories = categories.where((category) {
+    // Filter categories based on the search query
+    final filteredCategories = categories.where((category) {
       return category['name']
           .toLowerCase()
-          .contains(searchQuery.toLowerCase()); // Lọc theo tên
+          .contains(searchQuery.toLowerCase());
     }).toList();
 
     return Scaffold(
@@ -31,14 +189,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _showAddEditDialog(), // Thêm mới category
+            icon: Icon(Icons.refresh),
+            onPressed: _fetchCategories, // Refresh the category list
           ),
         ],
       ),
       body: Column(
         children: [
-          // Thanh tìm kiếm
+          // Search bar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -51,19 +209,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
               onChanged: (value) {
                 setState(() {
-                  searchQuery = value; // Cập nhật từ khóa tìm kiếm
+                  searchQuery = value;
                 });
               },
             ),
           ),
-          // Danh sách Category
+          // Category list
           Expanded(
-            child: filteredCategories.isEmpty
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filteredCategories.isEmpty
                 ? const Center(
               child: Text(
                 'No categories found!',
-                style:
-                TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
             )
                 : ListView.builder(
@@ -107,106 +267,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
         onPressed: () => _showAddEditDialog(),
         child: Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(int id, String name) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirm Delete'),
-        content: Text('Are you sure you want to delete "$name"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteCategory(id, name);
-            },
-            child: Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteCategory(int id, String name) {
-    setState(() {
-      categories.removeWhere((category) => category['id'] == id);
-    });
-
-    // Hiển thị Snackbar thông báo thành công
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Category "$name" deleted successfully!'),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _showAddEditDialog({Map<String, dynamic>? category}) {
-    final TextEditingController nameController =
-    TextEditingController(text: category != null ? category['name'] : '');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(category == null ? 'Add Category' : 'Edit Category'),
-          content: TextField(
-            controller: nameController,
-            decoration: InputDecoration(
-              labelText: 'Category Name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                if (name.isNotEmpty) {
-                  setState(() {
-                    if (category == null) {
-                      // Thêm mới category
-                      categories.add({
-                        'id': categories.length + 1,
-                        'name': name,
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Category "$name" added successfully!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      // Cập nhật category
-                      category['name'] = name;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Category "$name" updated successfully!'),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    }
-                  });
-                  Navigator.pop(context);
-                }
-              },
-              child: Text(category == null ? 'Add' : 'Update'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
