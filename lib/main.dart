@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easy_english/screens/category_screen.dart';
+import 'package:flutter_easy_english/screens/course_detail_screen.dart';
+import 'package:flutter_easy_english/screens/course_screen.dart';
+import 'package:flutter_easy_english/screens/index_screen.dart';
+import 'package:flutter_easy_english/screens/level_screen.dart';
+import 'package:flutter_easy_english/screens/topic_screen.dart';
+import 'package:flutter_easy_english/screens/user_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/i_auth_service.dart';
@@ -20,7 +27,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: LoginScreen(),
+        home: IndexScreen(),
       ),
     );
   }
