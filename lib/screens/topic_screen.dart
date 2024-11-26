@@ -25,7 +25,7 @@ class _TopicScreenState extends State<TopicScreen> {
       final ITopicService topicService =
       Provider.of<ITopicService>(context, listen: false);
 
-      final fetchedTopics = await topicService.fetchAllTopic();
+      final fetchedTopics = await topicService.fetchAllTopics();
       setState(() {
         topics = List<Map<String, dynamic>>.from(fetchedTopics);
       });

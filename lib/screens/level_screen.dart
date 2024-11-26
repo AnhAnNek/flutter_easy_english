@@ -32,7 +32,7 @@ class _LevelScreenState extends State<LevelScreen> {
           Provider.of<ITopicService>(context, listen: false);
 
       // Fetch all topics and levels
-      final topicData = await topicService.fetchAllTopic();
+      final topicData = await topicService.fetchAllTopics();
       final levelData = await levelService.fetchAllLevels();
 
       setState(() {

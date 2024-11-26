@@ -19,7 +19,7 @@ class TopicService extends ITopicService {
   }
 
   @override
-  Future fetchAllTopic() async {
+  Future fetchAllTopics() async {
     final response = await HttpRequest.getReturnDynamic('$SUFFIX_TOPIC/get-all');
     return response;
   }
