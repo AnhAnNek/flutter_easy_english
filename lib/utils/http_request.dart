@@ -1,10 +1,13 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'auth_utils.dart';
 import 'environment.dart';
 
 class HttpRequest {
-  static Future<dynamic> getReturnDynamic(String path, {Map<String, String>? headers}) async {
+  static Future<dynamic> getReturnDynamic(String path,
+      {Map<String, String>? headers}) async {
     final String baseUrl = Environment.apiUrl;
     final url = Uri.parse('$baseUrl$path');
 

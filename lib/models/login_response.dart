@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+
 import 'user_dto.dart';
 
 part 'login_response.g.dart';  // Link to the generated file

@@ -3,7 +3,6 @@ import 'package:flutter_easy_english/screens/category_screen.dart';
 import 'package:flutter_easy_english/screens/course_screen.dart';
 import 'package:flutter_easy_english/screens/level_screen.dart';
 import 'package:flutter_easy_english/screens/topic_screen.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class CourseTabScreen extends StatelessWidget {
   final List<String> courseItems = [

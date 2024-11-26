@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+
 import 'user_dto.dart';
 
 part 'active_account_response.g.dart';

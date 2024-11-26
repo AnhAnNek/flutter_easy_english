@@ -4,11 +4,11 @@ import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/screens/forgot_password_screen.dart';
 import 'package:flutter_easy_english/screens/index_screen.dart';
 import 'package:flutter_easy_english/screens/register_screen.dart';
-import 'package:flutter_easy_english/utils/auth_utils.dart';
-import 'package:logger/logger.dart';
 import 'package:flutter_easy_english/services/i_auth_service.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   @override

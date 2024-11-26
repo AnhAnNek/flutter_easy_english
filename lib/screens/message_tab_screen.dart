@@ -1,5 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/screens/message_detail_screen.dart';
+import 'package:flutter_easy_english/services/i_message_service.dart';
+import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
 
 class MessageTabScreen extends StatefulWidget {
   @override
@@ -7,54 +12,38 @@ class MessageTabScreen extends StatefulWidget {
 }
 
 class _MessageTabScreenState extends State<MessageTabScreen> {
-  final List<Conversation> conversations = [
-    Conversation(
-      name: "John Doe",
-      message: "Hey, how's it going?",
-      avatarUrl: "http://10.147.20.214:9000/easy-english/image/course2.jpg",
-      timestamp: "10:30 AM",
-    ),
-    Conversation(
-      name: "Alice Smith",
-      message: "Are you coming to the meeting?",
-      avatarUrl: "http://10.147.20.214:9000/easy-english/image/course2.jpg",
-      timestamp: "09:15 AM",
-    ),
-    Conversation(
-      name: "Charlie Brown",
-      message: "Let's catch up soon!",
-      avatarUrl: "http://10.147.20.214:9000/easy-english/image/course2.jpg",
-      timestamp: "Yesterday",
-    ),
-    Conversation(
-      name: "Emily Davis",
-      message: "Got your email, thanks!",
-      avatarUrl: "http://10.147.20.214:9000/easy-english/image/course2.jpg",
-      timestamp: "2 days ago",
-    ),
-  ];
-
-  List<Conversation> filteredConversations = [];
+  late final _logger;
+  late final IMessageService _messageService;
+  late Future<List<dynamic>> recentChatsFuture;
 
   @override
   void initState() {
     super.initState();
-    // Ban đầu, danh sách lọc giống danh sách gốc
-    filteredConversations = conversations;
+
+    _logger = Logger();
+
+    // Initialize _messageService using Provider
+    _messageService = Provider.of<IMessageService>(context, listen: false);
+
+    // Fetch recent chats on initialization
+    recentChatsFuture = _fetchRecentChats();
   }
 
-  void _filterConversations(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredConversations = conversations;
+  Future<List<dynamic>> _fetchRecentChats() async {
+    try {
+      final response = await _messageService.getRecentChats(0, 100); // Fetch the first 100 chats
+      _logger.i('_fetchRecentChats: ${response}');
+
+      // Ensure 'content' is a list and handle type mismatches
+      if (response['content'] is List) {
+        return response['content'];
       } else {
-        filteredConversations = conversations
-            .where((conversation) =>
-        conversation.name.toLowerCase().contains(query.toLowerCase()) ||
-            conversation.message.toLowerCase().contains(query.toLowerCase()))
-            .toList();
+        return [];
       }
-    });
+    } catch (error) {
+      _logger.e("Error fetching recent chats: $error");
+      return [];
+    }
   }
 
   @override
@@ -68,42 +57,55 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: ConversationSearchDelegate(conversations),
+                delegate: ConversationSearchDelegate(_logger, _messageService),
               );
             },
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: filteredConversations.length,
-        itemBuilder: (context, index) {
-          final conversation = filteredConversations[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(conversation.avatarUrl),
-            ),
-            title: Text(
-              conversation.name,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              conversation.message,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: Text(
-              conversation.timestamp,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            onTap: () {
-              // Điều hướng đến màn hình chi tiết
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MessageDetailScreen(),
-                ),
-              );
-            },
-          );
+      body: FutureBuilder<List<dynamic>>(
+        future: recentChatsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("No recent chats available."));
+          } else {
+            final recentChats = snapshot.data!;
+            return ListView.builder(
+              itemCount: recentChats.length,
+              itemBuilder: (context, index) {
+                final chat = recentChats[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(chat['avatarPath']),
+                  ),
+                  title: Text(
+                    chat['fullName'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    chat['bio'], // Example: Using bio as the subtitle
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text(
+                    chat['createdAt']?.split('T')[0] ?? 'Unknown Date', // Display only the date
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MessageDetailScreen(),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          }
         },
       ),
     );
@@ -111,9 +113,10 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
 }
 
 class ConversationSearchDelegate extends SearchDelegate {
-  final List<Conversation> conversations;
+  final IMessageService _messageService;
+  final Logger _logger;
 
-  ConversationSearchDelegate(this.conversations);
+  ConversationSearchDelegate(this._logger, this._messageService);
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -139,97 +142,120 @@ class ConversationSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    final results = conversations
-        .where((conversation) =>
-    conversation.name.toLowerCase().contains(query.toLowerCase()) ||
-        conversation.message.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    return ListView.builder(
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final conversation = results[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(conversation.avatarUrl),
-          ),
-          title: Text(
-            conversation.name,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            conversation.message,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Text(
-            conversation.timestamp,
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MessageDetailScreen(),
-              ),
-            );
-          },
-        );
+    // Fetch filtered results based on the query
+    return FutureBuilder<List<dynamic>>(
+      future: _fetchFilteredChats(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No results found."));
+        } else {
+          final results = snapshot.data!;
+          return ListView.builder(
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              final chat = results[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(chat['avatarPath']),
+                ),
+                title: Text(
+                  chat['fullName'],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  chat['bio'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(
+                  chat['createdAt']?.split('T')[0] ?? 'Unknown Date',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MessageDetailScreen(),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        }
       },
     );
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final suggestions = conversations
-        .where((conversation) =>
-    conversation.name.toLowerCase().contains(query.toLowerCase()) ||
-        conversation.message.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        final conversation = suggestions[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(conversation.avatarUrl),
-          ),
-          title: Text(
-            conversation.name,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            conversation.message,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Text(
-            conversation.timestamp,
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MessageDetailScreen(),
-              ),
-            );
-          },
-        );
+    // Suggest results while typing
+    return FutureBuilder<List<dynamic>>(
+      future: _fetchFilteredChats(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No suggestions available."));
+        } else {
+          final suggestions = snapshot.data!;
+          return ListView.builder(
+            itemCount: suggestions.length,
+            itemBuilder: (context, index) {
+              final chat = suggestions[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(chat['avatarPath']),
+                ),
+                title: Text(
+                  chat['fullName'],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  chat['bio'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(
+                  chat['createdAt']?.split('T')[0] ?? 'Unknown Date',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MessageDetailScreen(),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        }
       },
     );
   }
-}
 
-class Conversation {
-  final String name;
-  final String message;
-  final String avatarUrl;
-  final String timestamp;
-
-  Conversation({
-    required this.name,
-    required this.message,
-    required this.avatarUrl,
-    required this.timestamp,
-  });
+  Future<List<dynamic>> _fetchFilteredChats() async {
+    try {
+      // Fetch recent chats from the service
+      final response = await _messageService.getRecentChats(0, 100);
+      _logger.i('_fetchFilteredChats: ${response}');
+      // Filter chats based on the query
+      return response['content']
+          .where((chat) {
+        final fullName = chat['fullName']?.toString().toLowerCase() ?? '';
+        final bio = chat['bio']?.toString().toLowerCase() ?? '';
+        return fullName.contains(query.toLowerCase()) ||
+            bio.contains(query.toLowerCase());
+      })
+          .toList();
+    } catch (error) {
+      throw Exception("Failed to fetch filtered chats: $error");
+    }
+  }
 }

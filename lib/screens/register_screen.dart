@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/register_request.dart';
 import 'package:flutter_easy_english/services/auth_service.dart';
 import 'package:intl/intl.dart';
+
 import 'otp_screen.dart'; // Import the OTP screen
 
 class RegisterScreen extends StatefulWidget {

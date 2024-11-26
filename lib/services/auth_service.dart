@@ -1,12 +1,12 @@
-import 'package:flutter_easy_english/models/reset_pass_with_otp_req.dart';
-import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:flutter_easy_english/models/active_account_response.dart';
+import 'package:flutter_easy_english/models/login_request.dart';
 import 'package:flutter_easy_english/models/login_response.dart';
 import 'package:flutter_easy_english/models/otp_request.dart';
+import 'package:flutter_easy_english/models/register_request.dart';
+import 'package:flutter_easy_english/models/reset_pass_with_otp_req.dart';
 import 'package:flutter_easy_english/models/update_password_request.dart';
 import 'package:flutter_easy_english/models/user_dto.dart';
-import 'package:flutter_easy_english/models/login_request.dart';
-import 'package:flutter_easy_english/models/register_request.dart';
+import 'package:flutter_easy_english/services/i_auth_service.dart';
 import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:flutter_easy_english/utils/http_request.dart';
 

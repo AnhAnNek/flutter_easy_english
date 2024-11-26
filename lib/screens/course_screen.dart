@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/screens/course_detail_screen.dart';
 import 'package:flutter_easy_english/services/i_course_service.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class CourseScreen extends StatefulWidget {
   @override

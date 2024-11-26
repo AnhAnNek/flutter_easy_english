@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/services/i_category_service.dart';
 import 'package:flutter_easy_english/services/i_level_service.dart';
 import 'package:flutter_easy_english/services/i_topic_service.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CourseDetailScreen extends HookWidget {

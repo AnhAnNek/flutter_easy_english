@@ -5,16 +5,19 @@ import 'package:flutter_easy_english/services/course_service.dart';
 import 'package:flutter_easy_english/services/i_category_service.dart';
 import 'package:flutter_easy_english/services/i_course_service.dart';
 import 'package:flutter_easy_english/services/i_level_service.dart';
+import 'package:flutter_easy_english/services/i_message_service.dart';
 import 'package:flutter_easy_english/services/i_topic_service.dart';
 import 'package:flutter_easy_english/services/i_user_service.dart';
 import 'package:flutter_easy_english/services/level_service.dart';
+import 'package:flutter_easy_english/services/message_service.dart';
 import 'package:flutter_easy_english/services/topic_service.dart';
 import 'package:flutter_easy_english/services/user_service.dart';
 import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:provider/provider.dart';
+
+import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'services/i_auth_service.dart';
-import 'screens/login_screen.dart';
 
 void main() async {
   runApp(MyApp());
@@ -31,6 +34,7 @@ class MyApp extends StatelessWidget {
         Provider<ILevelService>(create: (_) => LevelService()),
         Provider<ITopicService>(create: (_) => TopicService()),
         Provider<IUserService>(create: (_) => UserService()),
+        Provider<IMessageService>(create: (_) => MessageService()),
       ],
       child: MaterialApp(
         title: 'Android Programming | Easy English',
