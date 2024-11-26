@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 abstract class ILevelService {
   Future<dynamic> fetchAllLevels();
   Future<dynamic> getLevelById(dynamic levelId);
