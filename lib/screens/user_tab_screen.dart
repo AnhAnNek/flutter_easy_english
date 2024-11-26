@@ -9,26 +9,25 @@ class UserTabScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserTabScreen> {
-  List<Map<String, dynamic>> users = []; // List to hold user data
-  String searchQuery = ''; // Search keyword
-  String? selectedRole; // Selected role filter
-  String? selectedStatus; // Selected status filter
-  bool isLoading = true; // Loading state
+  List<Map<String, dynamic>> users = [];
+  String searchQuery = '';
+  String? selectedRole;
+  String? selectedStatus;
+  bool isLoading = true;
 
-  final List<String> roles = ['ADMIN', 'TEACHER', 'STUDENT']; // Role options
-  final List<String> statuses = ['ACTIVE', 'INACTIVE', 'DELETED']; // Status options
+  final List<String> roles = ['TEACHER', 'STUDENT'];
+  final List<String> statuses = ['ACTIVE', 'INACTIVE'];
 
   @override
   void initState() {
     super.initState();
-    fetchUsers(); // Fetch users on widget initialization
+    fetchUsers();
   }
 
   Future<void> fetchUsers() async {
     try {
       final IUserService userService =
       Provider.of<IUserService>(context, listen: false);
-
       final response = await userService.getUsersWithoutAdmin({
         'page': 0,
         'size': 1000,
@@ -43,7 +42,29 @@ class _UserScreenState extends State<UserTabScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error fetching users: $error'),
+          content: Text('$error'),
+        ),
+      );
+    }
+  }
+
+  Future<void> addUser(Map<String, dynamic> newUser) async {
+    try {
+      final IUserService userService =
+      Provider.of<IUserService>(context, listen: false);
+      final addedUser = await userService.addUserForAdmin(newUser);
+      setState(() {
+        users.add(addedUser);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User ${newUser['username']} added successfully!'),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding user: $error'),
         ),
       );
     }
@@ -53,7 +74,6 @@ class _UserScreenState extends State<UserTabScreen> {
     try {
       final IUserService userService =
       Provider.of<IUserService>(context, listen: false);
-
       await userService.deleteUserForAdmin(username);
       setState(() {
         users.removeWhere((user) => user['username'] == username);
@@ -72,9 +92,180 @@ class _UserScreenState extends State<UserTabScreen> {
     }
   }
 
+  void showAddUserDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        // Fields for the new user
+        String username = '';
+        String password = '';
+        String fullName = '';
+        String email = '';
+        String phoneNumber = '';
+        String bio = '';
+        String gender = 'MALE'; // Default gender
+        DateTime? dob; // Date of birth
+        String role = roles.first; // Default role
+        String status = statuses.first; // Default status
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Add New User'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Username'),
+                      onChanged: (value) => username = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      obscureText: true,
+                      onChanged: (value) => password = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Full Name'),
+                      onChanged: (value) => fullName = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (value) => email = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Phone Number'),
+                      keyboardType: TextInputType.phone,
+                      onChanged: (value) => phoneNumber = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Bio'),
+                      maxLines: 3,
+                      onChanged: (value) => bio = value,
+                    ),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Gender'),
+                      value: gender,
+                      items: ['MALE', 'FEMALE', 'OTHER']
+                          .map((gender) => DropdownMenuItem(
+                        value: gender,
+                        child: Text(gender),
+                      ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => gender = value);
+                        }
+                      },
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (pickedDate != null) {
+                          setState(() => dob = pickedDate);
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration:
+                        const InputDecoration(labelText: 'Date of Birth'),
+                        child: Text(
+                          dob != null
+                              ? '${dob!.day}/${dob!.month}/${dob!.year}'
+                              : 'Select Date',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Role'),
+                      value: role,
+                      items: roles
+                          .map((role) => DropdownMenuItem(
+                        value: role,
+                        child: Text(role),
+                      ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => role = value);
+                        }
+                      },
+                    ),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Status'),
+                      value: status,
+                      items: statuses
+                          .map((status) => DropdownMenuItem(
+                        value: status,
+                        child: Text(status),
+                      ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => status = value);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the dialog
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (username.isEmpty ||
+                        password.isEmpty ||
+                        fullName.isEmpty ||
+                        email.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill out all required fields'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Create the new user object
+                    final newUser = {
+                      'username': username,
+                      'password': password,
+                      'fullName': fullName,
+                      'email': email,
+                      'phoneNumber': phoneNumber,
+                      'bio': bio,
+                      'gender': gender,
+                      'dob': dob?.toIso8601String() ?? '',
+                      'role': role,
+                      'status': status,
+                    };
+
+                    // Add the new user
+                    addUser(newUser);
+                    Navigator.pop(context); // Close the dialog
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Filter user list based on search query, role, and status
     List<Map<String, dynamic>> filteredUsers = users.where((user) {
       final matchesSearch = searchQuery.isEmpty ||
           user['fullName']
@@ -92,7 +283,6 @@ class _UserScreenState extends State<UserTabScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Search bar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -105,17 +295,15 @@ class _UserScreenState extends State<UserTabScreen> {
               ),
               onChanged: (value) {
                 setState(() {
-                  searchQuery = value; // Update search query
+                  searchQuery = value;
                 });
               },
             ),
           ),
-          // Filter dropdowns
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                // Role filter
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
@@ -139,7 +327,6 @@ class _UserScreenState extends State<UserTabScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Status filter
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
@@ -165,12 +352,9 @@ class _UserScreenState extends State<UserTabScreen> {
               ],
             ),
           ),
-          // User list
           Expanded(
             child: isLoading
-                ? const Center(
-              child: CircularProgressIndicator(), // Show loader
-            )
+                ? const Center(child: CircularProgressIndicator())
                 : filteredUsers.isEmpty
                 ? const Center(
               child: Text(
@@ -189,32 +373,35 @@ class _UserScreenState extends State<UserTabScreen> {
                   elevation: 2.0,
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: user['avatarPath'] != null
+                      backgroundImage: user['avatarPath'] != null &&
+                          user['avatarPath'].isNotEmpty
                           ? NetworkImage(user['avatarPath'])
                           : NetworkImage(
-                            'https://api.dicebear.com/6.x/initials/png?seed=${user['username']}',
-                          ),
+                        'https://api.dicebear.com/6.x/initials/png?seed=${user['username']}',
+                      ),
                       radius: 25,
                     ),
                     title: Text(
-                      user['fullName'],
+                      '${user['fullName']}', // Example with a Unicode emoji
                       style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     subtitle: Text(
                         'Email: ${user['email']}\nRole: ${user['role']}\nStatus: ${user['status']}'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete,
                           color: Colors.red),
-                      onPressed: () => deleteUser(user['username']),
+                      onPressed: () =>
+                          deleteUser(user['username']),
                     ),
                     onTap: () {
-                      // Navigate to user detail screen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UserDetailScreen(),
+                          builder: (context) =>
+                              UserDetailScreen(user: user),
                         ),
                       );
                     },
@@ -224,6 +411,10 @@ class _UserScreenState extends State<UserTabScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: showAddUserDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }

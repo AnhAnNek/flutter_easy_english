@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easy_english/services/i_user_service.dart';
+import 'package:provider/provider.dart';
 
 class UserDetailScreen extends StatefulWidget {
+  final Map<String, dynamic> user;
+
+  UserDetailScreen({required this.user});
+
   @override
   _UserDetailScreenState createState() => _UserDetailScreenState();
 }
 
 class _UserDetailScreenState extends State<UserDetailScreen> {
+  late String? _username;
   // Dữ liệu giả cho user
-  Map<String, dynamic> user = {
+  late Map<String, dynamic> user = {
     'avatarPath': 'http://10.147.20.214:9000/easy-english/image/course2.jpg',
     'username': 'john_doe',
     'password': 'password123',
@@ -15,36 +22,57 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     'email': 'johndoe@example.com',
     'phoneNumber': '+123456789',
     'bio': 'Passionate software engineer and tech enthusiast.',
-    'gender': 'Male',
+    'gender': 'MALE',
     'dob': DateTime(1990, 1, 1),
-    'role': 'Admin',
+    'role': 'ADMIN',
   };
 
-  final List<String> genders = ['Male', 'Female', 'Other'];
-  final List<String> roles = ['Admin', 'User', 'Guest'];
+  final List<String> genders = ['MALE', 'FEMALE', 'OTHER'];
+  final List<String> roles = ['TEACHER', 'STUDENT'];
 
   Future<void> _selectDate(BuildContext context) async {
+    // Parse the current DOB from the user map
+    DateTime initialDate = user['dob'] is String
+        ? DateTime.parse(user['dob'])
+        : user['dob'];
+
     DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: user['dob'],
+      initialDate: initialDate,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    if (picked != null && picked != user['dob']) {
+
+    if (picked != null && picked != initialDate) {
       setState(() {
-        user['dob'] = picked;
+        user['dob'] = picked; // Store picked as a DateTime object
       });
     }
   }
 
-  void _saveUserDetails() {
-    print('User details saved: $user');
+  void _saveUserDetails() async {
+    final username = _username;
+    final userForAdminReq = user;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('User details saved successfully!'),
-      ),
-    );
+    final IUserService userService =
+    Provider.of<IUserService>(context, listen: false);
+
+    try {
+      await userService.updateUserForAdmin(username, userForAdminReq);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User updated successfully!'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$e'),
+        ),
+      );
+    }
   }
 
   OutlineInputBorder _buildRoundedBorder() {
@@ -52,6 +80,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       borderRadius: BorderRadius.circular(10.0),
       borderSide: const BorderSide(color: Colors.grey),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    user = widget.user; // Initialize user with passed data
+    _username = widget.user['username'];
   }
 
   @override
@@ -69,7 +104,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: NetworkImage(user['avatarPath']),
+                backgroundImage: user['avatarPath'] != null && user['avatarPath'].isNotEmpty
+                    ? NetworkImage(user['avatarPath'])
+                    : NetworkImage(
+                  'https://api.dicebear.com/6.x/initials/png?seed=${user['username']}',
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -119,6 +158,16 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 labelText: 'Email',
                 border: _buildRoundedBorder(),
               ),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Email is required';
+                }
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
               onChanged: (value) {
                 setState(() {
                   user['email'] = value;
@@ -172,7 +221,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               },
             ),
             const SizedBox(height: 16),
-            GestureDetector(
+           GestureDetector(
               onTap: () => _selectDate(context),
               child: InputDecorator(
                 decoration: InputDecoration(
@@ -180,7 +229,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   border: _buildRoundedBorder(),
                 ),
                 child: Text(
-                  '${user['dob'].day}/${user['dob'].month}/${user['dob'].year}',
+                  user['dob'] is String
+                      ? '${DateTime.parse(user['dob'])?.day}/${DateTime.parse(user['dob'])?.month}/${DateTime.parse(user['dob'])?.year}'
+                      : '${user['dob']?.day}/${user['dob']?.month}/${user['dob']?.year}',
                 ),
               ),
             ),
