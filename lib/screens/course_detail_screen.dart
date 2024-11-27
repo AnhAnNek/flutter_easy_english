@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_english/services/i_category_service.dart';
-import 'package:flutter_easy_english/services/i_level_service.dart';
-import 'package:flutter_easy_english/services/i_topic_service.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
 
-class CourseDetailScreen extends HookWidget {
-  final Map<String?, String> statusDisplayMapping= {
+import 'package:flutter_easy_english/services/i_category_service.dart';
+import 'package:flutter_easy_english/services/i_level_service.dart';
+import 'package:flutter_easy_english/services/i_topic_service.dart';
+
+class CourseDetailScreen extends StatefulWidget {
+  final Map<String?, String> statusDisplayMapping = {
     null: 'All',
     'PUBLISHED': 'Published',
     'REJECTED': 'Rejected',
@@ -18,61 +19,53 @@ class CourseDetailScreen extends HookWidget {
     'DELETED': 'Deleted',
   };
 
-  CourseDetailScreen({
-    Key? key,
-    dynamic courseId,
-  }) : super(key: key);
+  final dynamic course;
+
+  CourseDetailScreen({Key? key, this.course}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final levels = useState<List<Map<String, dynamic>>>([]);
-    final topics = useState<List<Map<String, dynamic>>>([]);
-    final categories = useState<List<Map<String, dynamic>>>([]);
+  State<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
 
-    // Fake data for course
-    final course = useState<Map<String, dynamic>>({
+class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  final _logger = Logger();
+
+  String? selectedStatus;
+
+  // Course data
+  late Map<String, dynamic> course;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize course data
+    course = {
       'title': "Flutter Development",
       'description': "Learn how to build beautiful and responsive apps with Flutter.",
       'ownerUsername': "john_doe",
       'imagePreview': "http://10.147.20.214:9000/easy-english/image/course2.jpg",
       'topic': "Programming",
       'level': "Beginner",
-      'category': "Technology",
+      'categories': ["Technology"], // Updated to reflect a list
       'duration': "15",
       'status': "PUBLISHED",
-    });
+    };
+    
+    course = widget.course;
 
-    // Hooks for dropdowns
-    final selectedTopic = useState(course.value["topic"]);
-    final selectedLevel = useState(course.value["level"]);
-    final selectedCategory = useState(course.value["category"]);
-    final selectedStatus = useState(course.value["status"]);
+    selectedStatus = course["status"];
+  }
 
-    // Fetch dropdown data
-    useEffect(() {
-      Future.microtask(() async {
-        try {
-          final ILevelService levelService =
-          Provider.of<ILevelService>(context, listen: false);
-          final ITopicService topicService =
-          Provider.of<ITopicService>(context, listen: false);
-          final ICategoryService categoryService =
-          Provider.of<ICategoryService>(context, listen: false);
+  List<String> _convertMapListToStringList({
+    required List<Map<String, dynamic>> mapList,
+    required String key,
+  }) {
+    return mapList.map((map) => map[key]?.toString() ?? "Unknown").toList();
+  }
 
-          levels.value = await levelService.fetchAllLevels() as List<Map<String, dynamic>>;
-          topics.value = await topicService.fetchAllTopics() as List<Map<String, dynamic>>;
-          categories.value = await categoryService.fetchAllCategories() as List<Map<String, dynamic>>;
-
-          print('Levels: ${levels.value}');
-          print('Topics: ${topics.value}');
-          print('Categories: ${categories.value}');
-        } catch (e) {
-          print('Error fetching data: $e');
-        }
-      });
-      return null;
-    }, []);
-
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -94,11 +87,11 @@ class CourseDetailScreen extends HookWidget {
                   borderRadius: BorderRadius.circular(15),
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: (course.value['imagePreview'] != null &&
-                        course.value['imagePreview'].isNotEmpty)
-                        ? NetworkImage(course.value['imagePreview'])
+                    backgroundImage: (course['imagePreview'] != null &&
+                        course['imagePreview'].isNotEmpty)
+                        ? NetworkImage(course['imagePreview'])
                         : NetworkImage(
-                      'https://api.dicebear.com/6.x/initials/png?seed=${course.value['title']}',
+                      'https://api.dicebear.com/6.x/initials/png?seed=${course['title']}',
                     ),
                   ),
                 ),
@@ -106,211 +99,43 @@ class CourseDetailScreen extends HookWidget {
               const SizedBox(height: 20),
 
               // Title
-              Text(
-                "Title",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+              _buildTextField(
+                label: "Title",
+                value: course["title"],
+                onChanged: (value) => setState(() => course["title"] = value),
               ),
-              const SizedBox(height: 5),
-              TextField(
-                controller: TextEditingController(text: course.value["title"]),
-                onChanged: (value) => course.value["title"] = value,
-                decoration: InputDecoration(
-                  hintText: "Enter course title",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Description
-              Text(
-                "Description",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              TextField(
-                controller: TextEditingController(text: course.value["description"]),
-                onChanged: (value) => course.value["description"] = value,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: "Enter course description",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
 
               // Owner Username
-              Text(
-                "Owner Username",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+              _buildTextField(
+                label: "Owner Username",
+                value: course["ownerUsername"],
+                onChanged: (value) =>
+                    setState(() => course["ownerUsername"] = value),
               ),
-              const SizedBox(height: 5),
-              TextField(
-                controller: TextEditingController(text: course.value["ownerUsername"]),
-                onChanged: (value) => course.value["ownerUsername"] = value,
-                decoration: InputDecoration(
-                  hintText: "Enter owner username",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Topic Dropdown
-              Text(
-                "Topic",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-
-              DropdownButtonFormField<String>(
-                value: selectedTopic.value,
-                items: topics.value
-                    .map((topic) {
-                  // Access 'title' from the topic map
-                  final title = topic['title'] ?? 'Unknown';
-
-                  return DropdownMenuItem<String>(
-                    value: title, // Use the title string as the value
-                    child: Text(title),
-                  );
-                })
-                    .toList(),
-                onChanged: (selectedValue) {
-                  // Find the selected topic by title
-                  final selectedTopic = topics.value
-                      .firstWhere((topic) => topic['title'] == selectedValue);
-
-                  print('Selected: ${selectedTopic['title']}');
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Level Dropdown
-              Text(
-                "Level",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              DropdownButtonFormField<String>(
-                value: selectedLevel.value,
-                items: levels.value
-                    .map((level) {
-                  // Access 'title' from the level map
-                  final title = level['title'] ?? 'Unknown';
-                  return DropdownMenuItem<String>(
-                    value: title, // Use the title string as the value
-                    child: Text(title),
-                  );
-                })
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedLevel.value = value;
-                    // Find the corresponding level map by title
-                    final selectedLevelMap = levels.value
-                        .firstWhere((level) => level['title'] == value);
-                    course.value["level"] = selectedLevelMap;
-                  }
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Category Dropdown
-              Text(
-                "Category",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              DropdownButtonFormField<String>(
-                value: selectedCategory.value,
-                items: categories.value
-                    .map((category) {
-                  // Access 'title' from the category map
-                  final title = category['title'] ?? 'Unknown';
-                  return DropdownMenuItem<String>(
-                    value: title, // Use the title string as the value
-                    child: Text(title),
-                  );
-                })
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedCategory.value = value;
-                    // Find the corresponding category map by title
-                    final selectedCategoryMap = categories.value
-                        .firstWhere((category) => category['title'] == value);
-                    course.value["category"] = selectedCategoryMap;
-                  }
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
 
               // Duration
-              Text(
-                "Duration (hours)",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              TextField(
-                controller: TextEditingController(text: course.value["duration"]),
-                onChanged: (value) => course.value["duration"] = value,
+              _buildTextField(
+                label: "Duration (hours)",
+                value: course["duration"]?.toString() ?? '',
+                onChanged: (value) => setState(() => course["duration"] = value),
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: "Enter course duration",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
               ),
-              const SizedBox(height: 20),
 
               // Status Dropdown
-              Text(
-                "Status",
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 5),
-              DropdownButtonFormField<String?>(
-                value: selectedStatus.value, // Replace this with the selected value from your state
-                items: statusDisplayMapping.entries
-                    .map((entry) => DropdownMenuItem<String?>(
-                  value: entry.key,
-                  child: Text(entry.value),
-                ))
+              _buildDropdown(
+                label: "Status",
+                value: selectedStatus,
+                items: widget.statusDisplayMapping.entries
+                    .map((entry) => entry.key ?? '')
                     .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    selectedStatus.value = value;
-                    // Add logic to handle the selected status if needed
-                  }
+                onChanged: (selectedValue) {
+                  setState(() {
+                    selectedStatus = selectedValue;
+                    course["status"] = selectedValue;
+                  });
                 },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
               ),
+
               const SizedBox(height: 30),
 
               // Save Button
@@ -326,7 +151,8 @@ class CourseDetailScreen extends HookWidget {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlue,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -337,6 +163,110 @@ class CourseDetailScreen extends HookWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String value,
+    required Function(String) onChanged,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 5),
+        TextField(
+          controller: TextEditingController(text: value),
+          onChanged: onChanged,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: "Enter $label",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 5),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items
+              .map((item) => DropdownMenuItem<String>(
+            value: item,
+            child: Text(item),
+          ))
+              .toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildMultiSelect({
+    required String label,
+    required List<String> selectedValues,
+    required List<String> items,
+    required Function(List<String>) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 8,
+          children: items.map((item) {
+            final isSelected = selectedValues.contains(item);
+            return ChoiceChip(
+              label: Text(item),
+              selected: isSelected,
+              onSelected: (selected) {
+                final newSelectedValues = List<String>.from(selectedValues);
+                if (selected) {
+                  newSelectedValues.add(item);
+                } else {
+                  newSelectedValues.remove(item);
+                }
+                onChanged(newSelectedValues);
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }

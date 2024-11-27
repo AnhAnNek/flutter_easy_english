@@ -13,6 +13,7 @@ class UserDetailScreen extends StatefulWidget {
 
 class _UserDetailScreenState extends State<UserDetailScreen> {
   late String? _username;
+
   // Dữ liệu giả cho user
   late Map<String, dynamic> user = {
     'avatarPath': 'http://10.147.20.214:9000/easy-english/image/course2.jpg',
@@ -25,13 +26,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     'gender': 'MALE',
     'dob': DateTime(1990, 1, 1),
     'role': 'ADMIN',
+    'status': 'ACTIVE', // Added status field
   };
 
   final List<String> genders = ['MALE', 'FEMALE', 'OTHER'];
   final List<String> roles = ['TEACHER', 'STUDENT'];
+  final List<String> statuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED']; // Status options
 
   Future<void> _selectDate(BuildContext context) async {
-    // Parse the current DOB from the user map
     DateTime initialDate = user['dob'] is String
         ? DateTime.parse(user['dob'])
         : user['dob'];
@@ -45,7 +47,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
     if (picked != null && picked != initialDate) {
       setState(() {
-        user['dob'] = picked; // Store picked as a DateTime object
+        user['dob'] = picked;
       });
     }
   }
@@ -60,7 +62,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     try {
       await userService.updateUserForAdmin(username, userForAdminReq);
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('User updated successfully!'),
@@ -85,7 +86,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   @override
   void initState() {
     super.initState();
-    user = widget.user; // Initialize user with passed data
+    user = widget.user;
     _username = widget.user['username'];
   }
 
@@ -104,7 +105,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: user['avatarPath'] != null && user['avatarPath'].isNotEmpty
+                backgroundImage: user['avatarPath'] != null &&
+                    user['avatarPath'].isNotEmpty
                     ? NetworkImage(user['avatarPath'])
                     : NetworkImage(
                   'https://api.dicebear.com/6.x/initials/png?seed=${user['username']}',
@@ -221,7 +223,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               },
             ),
             const SizedBox(height: 16),
-           GestureDetector(
+            GestureDetector(
               onTap: () => _selectDate(context),
               child: InputDecorator(
                 decoration: InputDecoration(
@@ -230,8 +232,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 ),
                 child: Text(
                   user['dob'] is String
-                      ? '${DateTime.parse(user['dob'])?.day}/${DateTime.parse(user['dob'])?.month}/${DateTime.parse(user['dob'])?.year}'
-                      : '${user['dob']?.day}/${user['dob']?.month}/${user['dob']?.year}',
+                      ? '${DateTime.parse(user['dob']).day}/${DateTime.parse(user['dob']).month}/${DateTime.parse(user['dob']).year}'
+                      : '${user['dob'].day}/${user['dob'].month}/${user['dob'].year}',
                 ),
               ),
             ),
@@ -251,6 +253,25 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               onChanged: (value) {
                 setState(() {
                   user['role'] = value!;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: user['status'], // Added status field
+              decoration: InputDecoration(
+                labelText: 'Status',
+                border: _buildRoundedBorder(),
+              ),
+              items: statuses
+                  .map((status) => DropdownMenuItem<String>(
+                value: status,
+                child: Text(status),
+              ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  user['status'] = value!;
                 });
               },
             ),

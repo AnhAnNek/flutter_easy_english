@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/services/i_order_service.dart';
 import 'package:flutter_easy_english/utils/methods.dart';
-import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final dynamic order;
@@ -18,6 +18,7 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final _logger = Logger();
   List<Map<String, dynamic>> orderItems = [];
   String searchQuery = '';
   int currentPage = 0;
@@ -58,7 +59,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       });
     } catch (error) {
       // Handle any errors
-      print('Error fetching order items: $error');
+      _logger.i('Error fetching order items: $error');
     } finally {
       setState(() {
         isLoading = false;

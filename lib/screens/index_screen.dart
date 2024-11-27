@@ -17,7 +17,6 @@ class IndexScreen extends HookWidget {
 
     // Danh sách các màn hình (Tab)
     final screens = [
-      HomeTab(),
       CourseTabScreen(),
       OrderTabScreen(),
       UserTabScreen(),
@@ -27,7 +26,6 @@ class IndexScreen extends HookWidget {
 
     // Tiêu đề của từng tab
     final titles = [
-      'Home',
       'Course',
       'Order',
       'User',
@@ -50,7 +48,6 @@ class IndexScreen extends HookWidget {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Course'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Order'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'User'),
@@ -62,24 +59,9 @@ class IndexScreen extends HookWidget {
   }
 }
 
-// Tab Home
-class HomeTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Welcome to Home!',
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
-
 // Tab Account
 class AccountTab extends StatelessWidget {
   final List<String> accountItems = [
-    'Profile',
-    'Change Password',
     'Logout',
   ];
 

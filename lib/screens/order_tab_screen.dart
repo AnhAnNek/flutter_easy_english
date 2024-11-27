@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 import '../utils/methods.dart';
 import 'order_detail_screen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class OrderTabScreen extends StatefulWidget {
   @override

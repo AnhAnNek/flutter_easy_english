@@ -302,7 +302,7 @@ class _CourseScreenState extends State<CourseScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => CourseDetailScreen(
-                              courseId: course['id'],
+                              course: course,
                             ),
                           ),
                         );

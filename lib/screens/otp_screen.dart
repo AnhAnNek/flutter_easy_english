@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/active_account_response.dart';
 import 'package:flutter_easy_english/models/otp_request.dart';
 import 'package:flutter_easy_english/services/auth_service.dart';
-
+import 'package:logger/logger.dart';
 import 'login_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+  final _logger = Logger();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _otpController = TextEditingController();
   bool _isLoading = false;
@@ -32,7 +33,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
       try {
         ActiveAccountResponse a = await AuthService().activateAccount(otpRequest);
-        print(a);
+        _logger.i(a);
         // Hiển thị thông báo thành công và chuyển về trang đăng nhập
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Account activated successfully!')),
