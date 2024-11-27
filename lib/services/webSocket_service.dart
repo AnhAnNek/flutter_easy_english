@@ -1,63 +1,107 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:flutter_easy_english/utils/environment.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:logger/logger.dart';
 
 class WebSocketService {
+  // Singleton instance
+  static final WebSocketService _instance = WebSocketService._internal();
+
+  // Factory constructor to return the singleton instance
+  factory WebSocketService() {
+    return _instance;
+  }
+
+  // Private constructor for internal use
+  WebSocketService._internal();
+
+  // Class properties
   late StompClient client;
+  final _logger = Logger();
   final Map<String, Function> subscribers = {};
   String? url;
   int reconnectDelay = 5000; // Reconnect delay in milliseconds
   bool connected = false;
-  final Map<String, StompUnsubscribe?> subscriptionHandles = {}; // Corrected to StompUnsubscribe
+  final Map<String, StompUnsubscribe?> subscriptionHandles = {};
   Function? onConnectedCallback;
-
-  WebSocketService();
 
   // Connect to the WebSocket server
   void connect(Function onConnected) {
-    url = Environment.wsUrl; // Replace with your WebSocket URL
+    if (connected) {
+      _logger.i('Already connected to WebSocket');
+      return;
+    }
+
+    url = Environment.wsUrl;
     onConnectedCallback = onConnected;
     _createClient();
   }
 
   // Create and activate the Stomp client
-  void _createClient() {
-    final channel = WebSocketChannel.connect(Uri.parse(url!));
-    client = StompClient(
-      config: StompConfig(
-        url: url!,
-        onConnect: (StompFrame frame) {
-          print('Connected to WebSocket');
-          connected = true;
-          _onConnect();
+  void _createClient() async {
+    try {
+      final token = await AuthUtils.getToken();
+      if (token == null || token.isEmpty) {
+        _logger.e('Token is null or empty. Cannot connect to WebSocket.');
+        return;
+      }
 
-          // Execute the onConnected callback if provided
-          if (onConnectedCallback != null) {
-            onConnectedCallback!();
-          }
-        },
-        onDisconnect: (_) {
-          print('Disconnected from WebSocket');
-          connected = false;
-          _scheduleReconnect();
-        },
-        onStompError: (frame) {
-          print('Error: ${frame.headers["message"]}');
-        },
-        webSocketConnectHeaders: {'Authorization': 'Bearer YOUR_TOKEN'}, // Optional header
-      ),
-    );
-    client.activate();
+      _logger.i('_createClient - Token: $token');
+      _logger.i('WebSocket URL: $url');
+      client = StompClient(
+        config: StompConfig(
+          stompConnectHeaders: {
+            'Authorization': 'Bearer ${token}',
+          },
+          webSocketConnectHeaders: {
+            'Authorization': 'Bearer ${token}',
+          },
+          url: url!,
+          onConnect: (StompFrame frame) {
+            _logger.i('Connected to WebSocket');
+            connected = true;
+            _onConnect();
+
+            // Execute the onConnected callback if provided
+            if (onConnectedCallback != null) {
+              onConnectedCallback!();
+            }
+          },
+          onDisconnect: (_) {
+            _logger.i('Disconnected from WebSocket');
+            connected = false;
+            _scheduleReconnect();
+          },
+          onStompError: (frame) {
+            _logger.e('STOMP Error: ${frame.headers["message"]}');
+          },
+          onWebSocketError: (dynamic error) {
+            _logger.e('WebSocket Error: $error');
+          },
+          onWebSocketDone: () {
+            _logger.i('WebSocket connection closed.');
+            connected = false;
+            _scheduleReconnect();
+          },
+        ),
+      );
+      client.activate();
+    } catch (e) {
+      _logger.e('Failed to connect to WebSocket: $e');
+      _scheduleReconnect();
+    }
   }
 
   // Schedule reconnection
   void _scheduleReconnect() {
     Future.delayed(Duration(milliseconds: reconnectDelay), () {
-      print('Attempting to reconnect...');
-      _createClient();
+      if (!connected) {
+        _logger.i('Attempting to reconnect...');
+        _createClient();
+      }
     });
   }
 
@@ -76,6 +120,7 @@ class WebSocketService {
       // Subscribe and save the unsubscribe handle
       final subscription = client.subscribe(
         destination: destination,
+        headers: {},
         callback: (frame) {
           if (callback != null) {
             final payload = json.decode(frame.body!);
@@ -85,9 +130,9 @@ class WebSocketService {
       );
 
       subscriptionHandles[destination] = subscription;
-      print('Subscribed to $destination');
+      _logger.i('Subscribed to $destination');
     } else {
-      print('WebSocket client not connected. Unable to subscribe.');
+      _logger.e('WebSocket client not connected. Unable to subscribe.');
     }
   }
 
@@ -97,9 +142,9 @@ class WebSocketService {
       subscriptionHandles[destination]?.call(); // Call the unsubscribe function
       subscriptionHandles.remove(destination);
       subscribers.remove(destination);
-      print('Unsubscribed from $destination');
+      _logger.i('Unsubscribed from $destination');
     } else {
-      print('No subscription found for destination: $destination');
+      _logger.e('No subscription found for destination: $destination');
     }
   }
 
@@ -107,21 +152,21 @@ class WebSocketService {
   void send(String destination, Map<String, dynamic> body) {
     if (client.connected) {
       // Send message with JSON encoded body
-      client.send(destination: destination, body: json.encode(body));
-      print('Message sent to $destination: $body');
+      client.send(destination: destination, body: json.encode(body), headers: {});
+      _logger.i('Message sent to $destination: $body');
     } else {
-      print('WebSocket client not connected. Unable to send message.');
+      _logger.e('WebSocket client not connected. Unable to send message.');
     }
   }
 
   // Disconnect from the WebSocket
   void disconnect() {
-    if (client != null) {
+    if (connected) {
       client.deactivate();
       connected = false;
-      print('Disconnected from WebSocket');
+      _logger.i('Disconnected from WebSocket');
+    } else {
+      _logger.i('WebSocket is already disconnected.');
     }
   }
 }
-
-final websocketService = WebSocketService();

@@ -43,7 +43,6 @@ dependencies:
   intl: ^0.18.0
   fluttertoast: ^8.0.9
   stomp_dart_client: ^2.1.0  # Or the latest version available
-  web_socket_channel: ^3.0.1  # Or the latest version available
 
 dev_dependencies:
   flutter_test:

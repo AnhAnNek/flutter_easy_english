@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/screens/message_detail_screen.dart';
 import 'package:flutter_easy_english/services/i_message_service.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 
@@ -15,6 +16,7 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
   late final _logger;
   late final IMessageService _messageService;
   late Future<List<dynamic>> recentChatsFuture;
+  late String _username;
 
   @override
   void initState() {
@@ -22,11 +24,20 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
 
     _logger = Logger();
 
+    _loadUsername();
+
     // Initialize _messageService using Provider
     _messageService = Provider.of<IMessageService>(context, listen: false);
 
     // Fetch recent chats on initialization
     recentChatsFuture = _fetchRecentChats();
+  }
+
+  Future<void> _loadUsername() async {
+    String? username = await AuthUtils.getUsername();
+    setState(() {
+      _username = username ?? "";
+    });
   }
 
   Future<List<dynamic>> _fetchRecentChats() async {
@@ -57,7 +68,7 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: ConversationSearchDelegate(_logger, _messageService),
+                delegate: ConversationSearchDelegate(_logger, _messageService, _username),
               );
             },
           ),
@@ -98,7 +109,7 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MessageDetailScreen(),
+                        builder: (context) => MessageDetailScreen(senderUsername: _username, recipientUsername: chat['username']),
                       ),
                     );
                   },
@@ -115,8 +126,9 @@ class _MessageTabScreenState extends State<MessageTabScreen> {
 class ConversationSearchDelegate extends SearchDelegate {
   final IMessageService _messageService;
   final Logger _logger;
+  final String _username;
 
-  ConversationSearchDelegate(this._logger, this._messageService);
+  ConversationSearchDelegate(this._logger, this._messageService, this._username);
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -178,7 +190,7 @@ class ConversationSearchDelegate extends SearchDelegate {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MessageDetailScreen(),
+                      builder: (context) => MessageDetailScreen(senderUsername: _username, recipientUsername: chat['username'],),
                     ),
                   );
                 },
@@ -228,7 +240,7 @@ class ConversationSearchDelegate extends SearchDelegate {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MessageDetailScreen(),
+                      builder: (context) => MessageDetailScreen(senderUsername: _username, recipientUsername: chat['username'],),
                     ),
                   );
                 },
