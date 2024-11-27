@@ -82,7 +82,7 @@ class AccountTab extends StatelessWidget {
           title: Text(accountItems[index]),
           trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
           onTap: () {
-            if (index == 2) {
+            if (index == 0) {
               _showLogoutDialog(context);
             } else {
               EasyLoading.showToast('Clicked on ${accountItems[index]}');

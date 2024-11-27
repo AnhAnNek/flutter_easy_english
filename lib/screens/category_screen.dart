@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/services/i_category_service.dart';
+import 'package:flutter_easy_english/utils/toast_utils.dart';
 import 'package:provider/provider.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -30,12 +31,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         categories = List<Map<String, dynamic>>.from(fetchedCategories);
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to fetch categories: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastUtils.showError('Failed to fetch categories: $error');
     } finally {
       setState(() => isLoading = false);
     }

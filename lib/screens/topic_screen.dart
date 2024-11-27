@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/services/i_topic_service.dart';
+import 'package:flutter_easy_english/utils/toast_utils.dart';
 import 'package:provider/provider.dart';
 
 class TopicScreen extends StatefulWidget {
@@ -30,12 +31,7 @@ class _TopicScreenState extends State<TopicScreen> {
         topics = List<Map<String, dynamic>>.from(fetchedTopics);
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to fetch topics: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastUtils.showError('Failed to fetch topics: $error');
     } finally {
       setState(() => isLoading = false);
     }
@@ -51,12 +47,7 @@ class _TopicScreenState extends State<TopicScreen> {
         topics.removeWhere((topic) => topic['id'] == id);
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Topic "$name" deleted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastUtils.showSuccess('Topic "$name" deleted successfully!');
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

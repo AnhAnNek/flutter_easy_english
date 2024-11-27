@@ -35,14 +35,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     
     _messageService = Provider.of<IMessageService>(context, listen: false);
 
-    _webSocketService = WebSocketService();
-    // Connect WebSocket
-    _webSocketService.connect(() {
-      // Subscribe to a topic when WebSocket is connected
-      _webSocketService.subscribe('/topic/messages/${widget.recipientUsername}', (message) {
-        _handleIncomingMessage(message);
-      });
-    });
+    // _webSocketService = WebSocketService();
+    // // Connect WebSocket
+    // _webSocketService.connect(() {
+    //   // Subscribe to a topic when WebSocket is connected
+    //   _webSocketService.subscribe('/topic/messages/${widget.recipientUsername}', (message) {
+    //     _handleIncomingMessage(message);
+    //   });
+    // });
 
     _fetchMessages();
   }
@@ -50,8 +50,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   @override
   void dispose() {
     // Unsubscribe and disconnect WebSocket
-    _webSocketService.unsubscribe('/topic/messages/${widget.recipientUsername}');
-    _webSocketService.disconnect();
+    // _webSocketService.unsubscribe('/topic/messages/${widget.recipientUsername}');
+    // _webSocketService.disconnect();
     super.dispose();
   }
 

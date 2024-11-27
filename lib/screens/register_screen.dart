@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/models/register_request.dart';
+import 'package:flutter_easy_english/screens/login_screen.dart';
 import 'package:flutter_easy_english/services/auth_service.dart';
 import 'package:intl/intl.dart';
 
@@ -187,7 +188,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to the login screen
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
                   },
                   child: Text('Already have an account? Login'),
                 ),

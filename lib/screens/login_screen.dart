@@ -63,7 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
         );
-
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
         // Navigate to the HomeScreen on successful login
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => IndexScreen()),
