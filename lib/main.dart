@@ -6,10 +6,12 @@ import 'package:flutter_easy_english/services/i_category_service.dart';
 import 'package:flutter_easy_english/services/i_course_service.dart';
 import 'package:flutter_easy_english/services/i_level_service.dart';
 import 'package:flutter_easy_english/services/i_message_service.dart';
+import 'package:flutter_easy_english/services/i_order_service.dart';
 import 'package:flutter_easy_english/services/i_topic_service.dart';
 import 'package:flutter_easy_english/services/i_user_service.dart';
 import 'package:flutter_easy_english/services/level_service.dart';
 import 'package:flutter_easy_english/services/message_service.dart';
+import 'package:flutter_easy_english/services/order_service.dart';
 import 'package:flutter_easy_english/services/topic_service.dart';
 import 'package:flutter_easy_english/services/user_service.dart';
 import 'package:flutter_easy_english/utils/auth_utils.dart';
@@ -35,6 +37,7 @@ class MyApp extends StatelessWidget {
         Provider<ITopicService>(create: (_) => TopicService()),
         Provider<IUserService>(create: (_) => UserService()),
         Provider<IMessageService>(create: (_) => MessageService()),
+        Provider<IOrderService>(create: (_) => OrderService()),
       ],
       child: MaterialApp(
         title: 'Android Programming | Easy English',

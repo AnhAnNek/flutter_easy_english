@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_english/screens/course_tab_screen.dart';
+import 'package:flutter_easy_english/screens/login_screen.dart';
 import 'package:flutter_easy_english/screens/message_tab_screen.dart';
+import 'package:flutter_easy_english/screens/order_tab_screen.dart';
 import 'package:flutter_easy_english/screens/user_tab_screen.dart';
+import 'package:flutter_easy_english/services/i_auth_service.dart';
+import 'package:flutter_easy_english/utils/auth_utils.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:provider/provider.dart';
 
 class IndexScreen extends HookWidget {
   @override
@@ -14,6 +19,7 @@ class IndexScreen extends HookWidget {
     final screens = [
       HomeTab(),
       CourseTabScreen(),
+      OrderTabScreen(),
       UserTabScreen(),
       MessageTabScreen(),
       AccountTab(),
@@ -23,6 +29,7 @@ class IndexScreen extends HookWidget {
     final titles = [
       'Home',
       'Course',
+      'Order',
       'User',
       'Message',
       'Account',
@@ -45,6 +52,7 @@ class IndexScreen extends HookWidget {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Course'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Order'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'User'),
           BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Message'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Account'),
@@ -115,9 +123,16 @@ class AccountTab extends StatelessWidget {
             child: Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
+            onPressed: () async {
+              final IAuthService authService =
+              Provider.of<IAuthService>(context, listen: false);
+
+              authService.logout();
+              await AuthUtils.removeLoginResponse();
               EasyLoading.showSuccess('Logged out successfully!');
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
             },
             child: Text('Logout'),
           ),

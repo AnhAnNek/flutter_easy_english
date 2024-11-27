@@ -43,6 +43,8 @@ dependencies:
   intl: ^0.18.0
   fluttertoast: ^8.0.9
   stomp_dart_client: ^2.1.0  # Or the latest version available
+  flutter_slidable: ^3.0.0
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_test:

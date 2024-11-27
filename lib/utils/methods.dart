@@ -1,4 +1,6 @@
 // Formats a given ISO string to a human-readable date format
+import 'package:intl/intl.dart';
+
 String formatDate(String isoString) {
   print('isoString: $isoString');
   DateTime date = DateTime.parse(isoString);
@@ -52,3 +54,7 @@ List<String> validatePassword(String password, String confirmPassword) {
   if (password != confirmPassword) errors.add("Password and Confirm Password do not match.");
   return errors;
 }
+
+final vndFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+
